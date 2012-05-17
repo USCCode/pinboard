@@ -3,16 +3,20 @@
 {% block header %}{{ header }}{% endblock %}
 {% block content %}
     <h1>{{ title }}</h1>
-    {% if imgUrl is defined %}
+    {% if imgUrl %}
     <p>
-    You entered 
+    You just entered:
+    <ul>
+    	<li>imgUrl = {{ imgUrl }}</li>
+    	<li>caption = {{ caption }}</li>
+    </ul>
     </p>
     {% endif %}
     <p>
 	  Enter new pin:
 	  <form method="get">
-	  <label for="img-url">Image URL:</label><input type="text" name="img-url"/><br/>
-	  <label for="caption">Caption</label><input type="text" name="caption"/>
+	  <label for="imgUrl">Image URL:</label><input type="text" name="imgUrl"/><br/>
+	  <label for="caption">Caption:</label><input type="text" name="caption"/><br/>
 	  <input type="submit" value="Submit"/>
 	  </form>
     </p>
