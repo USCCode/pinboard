@@ -5,6 +5,15 @@ api_version: 1
 threadsafe: true
 
 handlers:
+- url: /css
+  static_dir: css
+
+- url: /img
+  static_dir: img
+
+- url: /js
+  static_dir: js
+
 - url: /.*
   script: pinboard.app
 

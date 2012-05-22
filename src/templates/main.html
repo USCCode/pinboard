@@ -4,24 +4,27 @@
 {% block content %}
     <h1>{{ title }}</h1>
     {% if imgUrl %}
-    <p>
+    <div class="displaybox">
     You just entered:
     <ul>
     	<li>imgUrl = {{ imgUrl }}</li>
     	<li>caption = {{ caption }}</li>
     </ul>
     </p>
+    </div>
     {% endif %}
+    <div class="displaybox">
     {% if username %}
-    <p>
+    
 	  Enter new pin:
 	  <form method="get">
-	  <label for="imgUrl">Image URL:</label><input type="text" name="imgUrl"/><br/>
-	  <label for="caption">Caption:</label><input type="text" name="caption"/><br/>
+	  <label for="imgUrl">Image URL:</label> <input type="text" name="imgUrl"/><br/>
+	  <label for="caption">Caption:</label> <input type="text" name="caption"/><br/>
 	  <input type="submit" value="Submit"/>
 	  </form>
-    </p>
+    
     {% else %}
     <p>You must login first.</p>    
     {% endif %}
+    </div>
 {% endblock %}

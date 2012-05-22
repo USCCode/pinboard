@@ -20,7 +20,7 @@ class MainPage(webapp2.RequestHandler):
             templateValues['imgUrl'] = self.request.get('imgUrl')
         if self.request.get('caption') != None:
             templateValues['caption'] = self.request.get('caption')
-        templateValues['title'] = 'Homework 3'
+        templateValues['title'] = 'Pinboard'
         user = users.get_current_user()
         if user:
             templateValues['logout'] = users.create_logout_url('/')
