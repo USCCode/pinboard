@@ -4,6 +4,8 @@ Created on May 16, 2012
 www.csce242.com
 
 @author: Jose M Vidal <jmvidal@gmail.com>
+
+Homework 3
 '''
 import webapp2
 import jinja2
