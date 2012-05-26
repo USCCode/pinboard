@@ -13,6 +13,9 @@ handlers:
 
 - url: /js
   static_dir: js
+  
+- url: /pic
+  static_dir: pic  
 
 - url: /.*
   script: pinboard.app

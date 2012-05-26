@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block header %}{{ header }}{% endblock %}
+{% block content %}
+    <h1>{{ title }}</h1>
+    <p>The pin is:</p>
+    {% if imgUrl %}
+    <div class="displaybox">
+    <img class="displayPin" alt="{{ caption }}" src="{{ imgUrl }}"/>
+    <div class="displayCaption" id="caption">
+    {{ caption }}
+    </div>
+    </div>
+    {% endif %}
+    <div class="displaybox">
+    {% if username %}
+      Edit this pin
+	  <form method="post" action="/pin/{{ id }}">
+	  <label for="imgUrl">Image URL:</label> <input type="text" name="imgUrl" value="{{ imgUrl }}"/><br/>
+	  <label for="caption">Caption:</label> <input type="text" name="caption" value="{{ caption }}"/><br/>
+	  <input type="submit" value="Submit"/>
+	  </form>
+    
+    {% else %}
+    <p>You must login first.</p>    
+    {% endif %}
+    </div>
+{% endblock %}

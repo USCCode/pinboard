@@ -66,3 +66,10 @@ li {
 	background-color: #eee;
 	
 }
+
+.displayPin, .displayCaption{
+    margin-left: 10%;
+	margin-right: 10%;	
+	width: 80%;
+}
+
