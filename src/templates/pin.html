@@ -2,22 +2,22 @@
 {% block title %}{{ title }}{% endblock %}
 {% block header %}{{ header }}{% endblock %}
 {% block content %}
-    <h1>{{ title }}</h1>
-    <p>The pin is:</p>
-    {% if imgUrl %}
+    <h1>Pin {{ title }}</h1>
+    {% if pin.imgUrl %}
     <div class="displaybox">
-    <img class="displayPin" alt="{{ caption }}" src="{{ imgUrl }}"/>
+    <img class="displayPin" alt="{{ pin.caption }}" src="{{ pin.imgUrl }}"/>
     <div class="displayCaption" id="caption">
-    {{ caption }}
+    {{ pin.caption }}
     </div>
+    <b>Created on: {{ pin.date }}</b>
     </div>
     {% endif %}
     <div class="displaybox">
     {% if username %}
       Edit this pin
 	  <form method="post" action="/pin/{{ id }}">
-	  <label for="imgUrl">Image URL:</label> <input type="text" name="imgUrl" value="{{ imgUrl }}"/><br/>
-	  <label for="caption">Caption:</label> <input type="text" name="caption" value="{{ caption }}"/><br/>
+	  <label for="imgUrl">Image URL:</label> <input type="text" name="imgUrl" value="{{ pin.imgUrl }}"/><br/>
+	  <label for="caption">Caption:</label> <input type="text" name="caption" value="{{ pin.caption }}"/><br/>
 	  <input type="submit" value="Submit"/>
 	  </form>
     

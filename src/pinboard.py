@@ -21,6 +21,9 @@ class Pin(db.Model):
     caption = db.StringProperty()
     date = db.DateTimeProperty(auto_now_add=True)
     owner = db.UserProperty()
+
+    def id(self):
+        return self.key().id()
     
 class myHandler(webapp2.RequestHandler):
     "Setup self.user and self.templateValues values."
@@ -53,16 +56,24 @@ class PinHandler(myHandler):
     def get(self,id):
         self.setupUser()
         logging.info('id is=%s' % id)
+        if id == '': # GET /pin returns the list of pins
+            query = Pin.all().filter('owner =', self.user) #Remember: "owner=" won't work!!!
+            logging.info("user=%s" % self.user)
+            for p in query:
+                logging.info(p.imgUrl)
+            self.templateValues['pins'] = query
+            self.templateValues['title'] = 'Your Pins'
+            self.render('pinlist.html')
+            return
         key = db.Key.from_path('Pin', long(id))
         logging.info('key is=%s' % key)
         thePin = db.get(key)
         if thePin == None:
             self.redirect('/')
             return
-        self.templateValues['title'] = id
+        self.templateValues['pin'] = thePin
         self.templateValues['id'] = id
-        self.templateValues['imgUrl'] = thePin.imgUrl
-        self.templateValues['caption'] = thePin.caption
+        self.templateValues['title'] = id
         self.render('pin.html')
     
     def post(self,id):
@@ -71,8 +82,16 @@ class PinHandler(myHandler):
         imgUrl = self.request.get('imgUrl')
         caption = self.request.get('caption')
         owner = self.user
-        thePin = Pin(imgUrl = imgUrl, caption = caption, owner = owner)
-        thePin.put()
+        if id == '': #new pin, create it
+            thePin = Pin(imgUrl = imgUrl, caption = caption, owner = owner)
+            thePin.put()
+        else: #existing pin, update it 
+            key = db.Key.from_path('Pin', long(id)) #TODO: check for bad id 
+            logging.info('key is=%s' % key)
+            thePin = db.get(key)
+            thePin.imgUrl = imgUrl
+            thePin.caption = caption
+            thePin.put()
         key = thePin.key()
         newUrl = '/pin/%s' % key.id()
         logging.info('Going to ' + newUrl)
