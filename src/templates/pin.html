@@ -14,14 +14,13 @@
     {% endif %}
     <div class="displaybox">
     {% if username %}
-      Edit this pin
 	  <form method="post" action="/pin/{{ id }}">
 	  <label for="imgUrl">Image URL:</label> <input type="text" name="imgUrl" value="{{ pin.imgUrl }}"/><br/>
 	  <label for="caption">Caption:</label> <input type="text" name="caption" value="{{ pin.caption }}"/><br/>
-	  <input type="submit" value="Submit"/>
+	  <input type="submit" value="Update Pin Info"/>
 	  </form>
 	  <br />
-	  <form action="/pin/{{ id }}">
+	  <form methodaction="/pin/{{ id }}">
 	  <input type="hidden" name="cmd" value="delete"/>
 	  <input type="submit" value="Delete this Pin" />
 	  </form>

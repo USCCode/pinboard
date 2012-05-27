@@ -81,10 +81,18 @@ class PinHandler(myHandler):
         self.setupUser()
         imgUrl = self.request.get('imgUrl')
         caption = self.request.get('caption')
+        command = self.request.get('cmd')
         owner = self.user
         if id == '': #new pin, create it
             thePin = Pin(imgUrl = imgUrl, caption = caption, owner = owner)
             thePin.put()
+        elif command == 'delete': #delete the pin
+            key = db.Key.from_path('Pin', long(id)) #TODO: check for bad id 
+            logging.info('key is=%s' % key)
+            thePin = db.get(key)
+            thePin.delete()
+            self.redirect('/pin/')            
+            return
         else: #existing pin, update it 
             key = db.Key.from_path('Pin', long(id)) #TODO: check for bad id 
             logging.info('key is=%s' % key)
@@ -96,7 +104,6 @@ class PinHandler(myHandler):
         newUrl = '/pin/%s' % key.id()
         logging.info('Going to ' + newUrl)
         self.redirect(newUrl)
-
 
 
 app = webapp2.WSGIApplication([('/pin/(.*)', PinHandler), ('/pin()', PinHandler),
