@@ -99,6 +99,6 @@ class PinHandler(myHandler):
 
 
 
-app = webapp2.WSGIApplication([('/pin/(.*)', PinHandler),
+app = webapp2.WSGIApplication([('/pin/(.*)', PinHandler), ('/pin()', PinHandler),
                                ('/', MainPageHandler)],
                               debug=True)

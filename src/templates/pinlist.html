@@ -5,13 +5,13 @@
     <h1>Your Pins</h1>
     
     {% for pin in pins %}
-    <div class="displaybox">
+    <div class="thumbbox">
     <a href="/pin/{{ pin.id() }}">
-    <img class="displayPin" title="click to edit this pin" alt="{{ pin.caption }}" src="{{ pin.imgUrl }}"/></a>
-    <div class="displayCaption" id="caption">
+    <img class="thumbPin" title="click to edit this pin" alt="{{ pin.caption }}" src="{{ pin.imgUrl }}"/></a>
+    Taken on {{ pin.date.strftime('%B %d, %Y at %H:%M') }}<br/>
+    <span class="displayCaption" id="caption">
     {{ pin.caption }}
-    </div>
-    <b>Created on: {{ pin.date }}</b>
+    </span> 
     </div>
     {% endfor %}
     

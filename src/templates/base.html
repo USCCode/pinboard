@@ -11,7 +11,7 @@
 	<div id="header">
 	<div class="right">
 	{% if username %}
-	<b>{{ username }}</b> - <a href="{{ logout }}">Logout</a>
+	<b><a href="/pin/">My Pins</a></b> - <b>{{ username }}</b> - <a href="{{ logout }}">Logout</a>
 	{% else %}
 	<a href="{{ login }}">Login</a>
 	{% endif %}

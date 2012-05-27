@@ -9,7 +9,7 @@
     <div class="displayCaption" id="caption">
     {{ pin.caption }}
     </div>
-    <b>Created on: {{ pin.date }}</b>
+    Taken on {{ pin.date.strftime('%B %d, %Y at %H:%M') }}.<br/>
     </div>
     {% endif %}
     <div class="displaybox">
@@ -19,6 +19,11 @@
 	  <label for="imgUrl">Image URL:</label> <input type="text" name="imgUrl" value="{{ pin.imgUrl }}"/><br/>
 	  <label for="caption">Caption:</label> <input type="text" name="caption" value="{{ pin.caption }}"/><br/>
 	  <input type="submit" value="Submit"/>
+	  </form>
+	  <br />
+	  <form action="/pin/{{ id }}">
+	  <input type="hidden" name="cmd" value="delete"/>
+	  <input type="submit" value="Delete this Pin" />
 	  </form>
     
     {% else %}
