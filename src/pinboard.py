@@ -40,9 +40,22 @@ class myHandler(webapp2.RequestHandler):
         "Render the given file"
         template = jinja_environment.get_template(file)
         self.response.out.write(template.render(self.templateValues))
+        
+    def getPin(self, id):
+        """Returns the pin with the given id (a String), or None if there is no such id."""
+        key = db.Key.from_path('Pin', long(id))
+        logging.info('key is=%s' % key)
+        thePin = db.get(key)
+        if thePin == None:
+            self.redirect('/')
+            return None
+        if thePin.owner != self.user: #not his pin, kick him out.
+            self.redirect('/')
+            return None
+        return thePin        
 
 class MainPageHandler(myHandler):
-    def get(self):
+    def get(self): #Ask user to login or show him add pins form.
         self.setupUser()
         if self.request.get('imgUrl') != None:
             self.templateValues['imgUrl'] = self.request.get('imgUrl')
@@ -65,19 +78,16 @@ class PinHandler(myHandler):
             self.templateValues['title'] = 'Your Pins'
             self.render('pinlist.html')
             return
-        key = db.Key.from_path('Pin', long(id))
-        logging.info('key is=%s' % key)
-        thePin = db.get(key)
-        if thePin == None:
-            self.redirect('/')
-            return
+        thePin = self.getPin(id)
+        if thePin == None: return
         self.templateValues['pin'] = thePin
         self.templateValues['id'] = id
         self.templateValues['title'] = id
         self.render('pin.html')
     
     def post(self,id):
-        """If /pin/ then create a new one, if /pin/123 then update it."""
+        """If /pin/ then create a new one, if /pin/123 then update it,
+        if /pin/123?cmd=delete then delete it."""
         self.setupUser()
         imgUrl = self.request.get('imgUrl')
         caption = self.request.get('caption')
@@ -87,16 +97,14 @@ class PinHandler(myHandler):
             thePin = Pin(imgUrl = imgUrl, caption = caption, owner = owner)
             thePin.put()
         elif command == 'delete': #delete the pin
-            key = db.Key.from_path('Pin', long(id)) #TODO: check for bad id 
-            logging.info('key is=%s' % key)
-            thePin = db.get(key)
+            thePin = self.getPin(id)
+            if thePin == None: return
             thePin.delete()
             self.redirect('/pin/')            
             return
         else: #existing pin, update it 
-            key = db.Key.from_path('Pin', long(id)) #TODO: check for bad id 
-            logging.info('key is=%s' % key)
-            thePin = db.get(key)
+            thePin = self.getPin(id)
+            if thePin == None: return
             thePin.imgUrl = imgUrl
             thePin.caption = caption
             thePin.put()
