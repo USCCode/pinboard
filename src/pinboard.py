@@ -21,6 +21,7 @@ class Pin(db.Model):
     caption = db.StringProperty()
     date = db.DateTimeProperty(auto_now_add=True)
     owner = db.UserProperty()
+    private = db.BooleanProperty(default=False)
 
     def id(self):
         return self.key().id()
@@ -49,9 +50,6 @@ class myHandler(webapp2.RequestHandler):
         if thePin == None:
             self.redirect('/')
             return None
-        if thePin.owner != self.user: #not his pin, kick him out.
-            self.redirect('/')
-            return None
         return thePin        
 
 class MainPageHandler(myHandler):
@@ -67,9 +65,9 @@ class MainPageHandler(myHandler):
         
 class PinHandler(myHandler):
     def get(self,id):
-        self.setupUser()
+        self.setupUser()    
         logging.info('id is=%s' % id)
-        if id == '': # GET /pin returns the list of pins
+        if id == '': # GET /pin returns the list of pins for this user
             query = Pin.all().filter('owner =', self.user) #Remember: "owner=" won't work!!!
             logging.info("user=%s" % self.user)
             for p in query:
@@ -80,10 +78,14 @@ class PinHandler(myHandler):
             return
         thePin = self.getPin(id)
         if thePin == None: return
-        self.templateValues['pin'] = thePin
-        self.templateValues['id'] = id
-        self.templateValues['title'] = id
-        self.render('pin.html')
+        logging.info('thepin.private is=%s' % thePin.private)
+        if (not thePin.private) or self.user == thePin.owner:
+            self.templateValues['pin'] = thePin
+            self.templateValues['id'] = id
+            self.templateValues['title'] = id
+            self.render('pin.html')
+        else:
+            self.redirect('/')
     
     def post(self,id):
         """If /pin/ then create a new one, if /pin/123 then update it,
@@ -92,22 +94,30 @@ class PinHandler(myHandler):
         imgUrl = self.request.get('imgUrl')
         caption = self.request.get('caption')
         command = self.request.get('cmd')
+        private = self.request.get('private')
+        if private == "on":
+            private = True
+        else:
+            private = False
         owner = self.user
         if id == '': #new pin, create it
-            thePin = Pin(imgUrl = imgUrl, caption = caption, owner = owner)
+            thePin = Pin(imgUrl = imgUrl, caption = caption, owner = owner, private = private)
             thePin.put()
-        elif command == 'delete': #delete the pin
+        else:
             thePin = self.getPin(id)
-            if thePin == None: return
-            thePin.delete()
-            self.redirect('/pin/')            
-            return
-        else: #existing pin, update it 
-            thePin = self.getPin(id)
-            if thePin == None: return
-            thePin.imgUrl = imgUrl
-            thePin.caption = caption
-            thePin.put()
+            if thePin == None: return            
+            if thePin.owner != self.user: #not his pin, kick him out.
+                self.redirect('/')
+                return
+            if command == 'delete': #delete the pin
+                thePin.delete()
+                self.redirect('/pin/')            
+                return
+            else: #existing pin, update it 
+                thePin.imgUrl = imgUrl
+                thePin.caption = caption
+                thePin.private = private
+                thePin.put()
         key = thePin.key()
         newUrl = '/pin/%s' % key.id()
         logging.info('Going to ' + newUrl)

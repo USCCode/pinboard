@@ -17,6 +17,8 @@
 	  <form method="post" action="/pin/{{ id }}">
 	  <label for="imgUrl">Image URL:</label> <input type="text" name="imgUrl" value="{{ pin.imgUrl }}"/><br/>
 	  <label for="caption">Caption:</label> <input type="text" name="caption" value="{{ pin.caption }}"/><br/>
+	  <label for="private">Private:</label> <input type="checkbox" name="private" 
+	     {% if pin.private %}checked {% endif %} /><br/>
 	  <input type="submit" value="Update Pin Info"/>
 	  </form>
 	  <br />
