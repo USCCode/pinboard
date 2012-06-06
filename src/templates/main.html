@@ -3,29 +3,15 @@
 {% block header %}{{ header }}{% endblock %}
 {% block content %}
     <h1>{{ title }}</h1>
-    {% if imgUrl %}
-    <div class="displaybox">
-    You just entered:
+    {% if user %}    
     <ul>
-    	<li>imgUrl = {{ imgUrl }}</li>
-    	<li>caption = {{ caption }}</li>
+    <li><a href="/pin/">See your pins</a></li>
+    <li><a href="/board/">See your boards</a></li>
     </ul>
-    </p>
-    </div>
-    {% endif %}
-    <div class="displaybox">
-    {% if username %}
-    
-	  Enter new pin:
-	  <form method="post" action="/pin/">
-	  <label for="imgUrl">Image URL:</label> <input type="text" name="imgUrl"/><br/>
-	  <label for="caption">Caption:</label> <input type="text" name="caption"/><br/>
-	  <label for="private">Private:</label> <input type="checkbox" name="private"/><br/>
-	  <input type="submit" value="Submit"/>
-	  </form>
-    
     {% else %}
-    <p>You must <a href="{{ login }}">login</a> first.</p>    
+    <div class="displaybox">
+    <p>You must <a href="{{ login }}">login</a> first.</p>
+    </div>    
     {% endif %}
-    </div>
+
 {% endblock %}

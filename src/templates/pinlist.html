@@ -15,5 +15,14 @@
     </div>
     {% endfor %}
     
-    
+    {% if username %}
+	  Enter new pin:
+	  <form method="post" action="/pin/">
+	  <label for="imgUrl">Image URL:</label> <input type="text" name="imgUrl"/><br/>
+	  <label for="caption">Caption:</label> <input type="text" name="caption"/><br/>
+	  <label for="private">Private:</label> <input type="checkbox" name="private"/><br/>
+	  <input type="submit" value="Submit"/>
+	  </form>
+    {% endif %}
+
 {% endblock %}

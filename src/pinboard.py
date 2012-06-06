@@ -18,15 +18,40 @@ jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.di
 
 class Pin(db.Model):
     imgUrl = db.StringProperty()
-    caption = db.StringProperty()
+    caption = db.StringProperty(indexed=False)
     date = db.DateTimeProperty(auto_now_add=True)
     owner = db.UserProperty()
     private = db.BooleanProperty(default=False)
 
     def id(self):
         return self.key().id()
+
+    @staticmethod #just like a Java static method
+    def getPin(id): 
+        """Returns the pin with the given id (a String), or None if there is no such id."""
+        key = db.Key.from_path('Pin', long(id))
+        thePin = db.get(key)
+        return thePin
     
-class myHandler(webapp2.RequestHandler):
+    
+class Board(db.Model):
+    title = db.StringProperty()
+    owner = db.UserProperty()
+    private = db.BooleanProperty(default=False)
+    pins = db.ListProperty(db.Key) #references to the pins in this pinboard
+    
+    def id(self):
+        return self.key().id()
+
+    @staticmethod    
+    def getBoard(id):
+        """Returns the board with the given id (a String), or None if there is no such id."""
+        key = db.Key.from_path('Board', long(id))
+        theBoard = db.get(key)
+        return theBoard
+    
+    
+class MyHandler(webapp2.RequestHandler):
     "Setup self.user and self.templateValues values."
     def setupUser(self):
         self.user = users.get_current_user()
@@ -42,43 +67,30 @@ class myHandler(webapp2.RequestHandler):
         template = jinja_environment.get_template(file)
         self.response.out.write(template.render(self.templateValues))
         
-    def getPin(self, id):
-        """Returns the pin with the given id (a String), or None if there is no such id."""
-        key = db.Key.from_path('Pin', long(id))
-        logging.info('key is=%s' % key)
-        thePin = db.get(key)
-        if thePin == None:
-            self.redirect('/')
-            return None
-        return thePin        
 
-class MainPageHandler(myHandler):
-    def get(self): #Ask user to login or show him add pins form.
+class MainPageHandler(MyHandler):
+    def get(self): #/ Ask user to login or show him links
         self.setupUser()
-        if self.request.get('imgUrl') != None:
-            self.templateValues['imgUrl'] = self.request.get('imgUrl')
-        if self.request.get('caption') != None:
-            self.templateValues['caption'] = self.request.get('caption')
+        if self.user:
+            self.templateValues['user'] = self.user
         self.templateValues['title'] = 'Pinboard'
         self.render('main.html')
         
         
-class PinHandler(myHandler):
+class PinHandler(MyHandler):
     def get(self,id):
         self.setupUser()    
         logging.info('id is=%s' % id)
         if id == '': # GET /pin returns the list of pins for this user
             query = Pin.all().filter('owner =', self.user) #Remember: "owner=" won't work!!!
-            logging.info("user=%s" % self.user)
-            for p in query:
-                logging.info(p.imgUrl)
             self.templateValues['pins'] = query
             self.templateValues['title'] = 'Your Pins'
             self.render('pinlist.html')
             return
-        thePin = self.getPin(id)
-        if thePin == None: return
-        logging.info('thepin.private is=%s' % thePin.private)
+        thePin = Pin.getPin(id)
+        if thePin == None:
+            self.redirect('/') 
+            return
         if (not thePin.private) or self.user == thePin.owner:
             self.templateValues['pin'] = thePin
             self.templateValues['id'] = id
@@ -104,8 +116,10 @@ class PinHandler(myHandler):
             thePin = Pin(imgUrl = imgUrl, caption = caption, owner = owner, private = private)
             thePin.put()
         else:
-            thePin = self.getPin(id)
-            if thePin == None: return            
+            thePin = Pin.getPin(id)
+            if thePin == None:
+                self.redirect('/')  
+                return            
             if thePin.owner != self.user: #not his pin, kick him out.
                 self.redirect('/')
                 return
@@ -123,7 +137,60 @@ class PinHandler(myHandler):
         logging.info('Going to ' + newUrl)
         self.redirect(newUrl)
 
+class BoardHandler(MyHandler):
+    def get(self,id): #/board/
+        self.setupUser()
+        if id == '': # GET /board returns the list of pins for this user
+            query = Board.all().filter('owner =', self.user) #Remember: "owner=" won't work!!!
+            self.templateValues['boards'] = query
+            self.templateValues['title'] = 'Your Boards'
+            self.render('boardlist.html')
+            return
+        theBoard = Board.getBoard(id)
+        if theBoard == None: return
+        if (not theBoard.private) or self.user == theBoard.owner:
+            self.templateValues['board'] = theBoard
+            self.templateValues['id'] = id
+            self.templateValues['title'] = id
+            self.render('board.html')
+        else:
+            self.redirect('/')
+    
+    def post(self,id):
+        self.setupUser()
+        title = self.request.get('title')
+        command = self.request.get('cmd')
+        private = self.request.get('private')
+        if private == "on":
+            private = True
+        else:
+            private = False
+        owner = self.user
+        if id == '': #new board, create it
+            theBoard = Board(title = title, owner = owner, private = private)
+            theBoard.put()
+        else:
+            theBoard = Board.getBoard(id)
+            if theBoard == None:
+                self.redirect('/')  
+                return            
+            if theBoard.owner != self.user: #not his pin, kick him out.
+                self.redirect('/')
+                return
+            if command == 'delete': #delete the pin
+                theBoard.delete()
+                self.redirect('/board/')            
+                return
+            else: 
+                theBoard.title = title
+                theBoard.private = private
+                theBoard.put()
+        key = theBoard.key()
+        newUrl = '/board/%s' % key.id()
+        self.redirect(newUrl)
+
 
 app = webapp2.WSGIApplication([('/pin/(.*)', PinHandler), ('/pin()', PinHandler),
+                               ('/board/(.*)', BoardHandler), ('/board()', BoardHandler), 
                                ('/', MainPageHandler)],
                               debug=True)

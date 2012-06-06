@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block header %}{{ header }}{% endblock %}
+{% block content %}
+    <h1>{{ board.title }}</h1>
+    <div class="displaybox">
+       Edit this board:
+	  <form method="post" action="/board/{{ id }}">
+	  <label for="imgUrl">Title:</label> <input type="text" name="title" value="{{ board.title }}"/><br/>
+	  <label for="private">Private:</label> <input type="checkbox" name="private" 
+	     {% if board.private %}checked {% endif %} /><br/>
+	  <input type="submit" value="Update Board Info"/>
+	  </form>
+	  <br />
+	  <form methodaction="/board/{{ id }}">
+	  <input type="hidden" name="cmd" value="delete"/>
+	  <input type="submit" value="Delete this Board" />
+	  </form>
+    </div>
+{% endblock %}
