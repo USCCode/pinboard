@@ -16,7 +16,7 @@
     </div>
     {% endfor %}
 
-    
+    {% if editor %}    
     <div class="displaybox">
        Edit this board:
 	  <form method="post" action="/board/{{ id }}">
@@ -44,4 +44,5 @@
 	  <input type="submit" value="Delete this Board" />
 	  </form>	  
     </div>
+    {% endif %}
 {% endblock %}

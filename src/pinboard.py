@@ -107,6 +107,8 @@ class PinHandler(MyHandler):
             self.redirect('/') 
             return
         if (not thePin.private) or self.user == thePin.owner:
+            if self.user == thePin.owner:
+                self.templateValues['owner'] = True
             self.templateValues['pin'] = thePin
             self.templateValues['id'] = id
             self.templateValues['title'] = id
@@ -157,6 +159,9 @@ class BoardHandler(MyHandler):
     def get(self,id): #/board/
         self.setupUser()
         if id == '': # GET /board returns the list of pins for this user
+            if self.user == None:
+                self.redirect('/')
+                return
             query = Board.all().filter('owner =', self.user) #Remember: "owner=" won't work!!!
             self.templateValues['boards'] = query
             self.templateValues['title'] = 'Your Boards'
@@ -168,11 +173,15 @@ class BoardHandler(MyHandler):
             self.templateValues['board'] = theBoard
             self.templateValues['id'] = id
             self.templateValues['title'] = id
+            if self.user == theBoard.owner:
+                self.templateValues['editor'] = True
             myPins = Pin.all().filter('owner =', self.user)            
             self.templateValues['myPins'] = myPins
             boardPins = []
             for p in theBoard.pins:
-                boardPins.append(Pin.get(p))
+                thePin = Pin.get(p)
+                if not thePin.private or thePin.owner == self.user: #only my pins, or public 
+                    boardPins.append(thePin)
             self.templateValues['boardPins']= boardPins
             self.render('board.html')
         else:

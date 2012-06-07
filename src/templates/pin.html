@@ -12,8 +12,9 @@
     Taken on {{ pin.date.strftime('%B %d, %Y at %H:%M') }}.<br/>
     </div>
     {% endif %}
-    <div class="displaybox">
-    {% if username %}
+
+    {% if editor %}
+     <div class="displaybox">
 	  <form method="post" action="/pin/{{ id }}">
 	  <label for="imgUrl">Image URL:</label> <input type="text" name="imgUrl" value="{{ pin.imgUrl }}"/><br/>
 	  <label for="caption">Caption:</label> <input type="text" name="caption" value="{{ pin.caption }}"/><br/>
@@ -26,11 +27,9 @@
 	  <input type="hidden" name="cmd" value="delete"/>
 	  <input type="submit" value="Delete this Pin" />
 	  </form>
-    
-    {% else %}
-    <p>You must login first.</p>    
+    </div>	  
     {% endif %}
-    </div>
+
     
     <div class="displaybox">
       {% for board in boards %}
