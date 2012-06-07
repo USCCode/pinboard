@@ -108,10 +108,7 @@ class PinHandler(MyHandler):
         caption = self.request.get('caption')
         command = self.request.get('cmd')
         private = self.request.get('private')
-        if private == "on":
-            private = True
-        else:
-            private = False
+        private = True if (private == "on") else False
         owner = self.user
         if id == '': #new pin, create it
             thePin = Pin(imgUrl = imgUrl, caption = caption, owner = owner, private = private)
@@ -168,10 +165,7 @@ class BoardHandler(MyHandler):
         title = self.request.get('title')
         command = self.request.get('cmd')
         private = self.request.get('private')
-        if private == "on":
-            private = True
-        else:
-            private = False
+        private = True if (private == "on") else False
         owner = self.user
         if id == '': #new board, create it
             theBoard = Board(title = title, owner = owner, private = private)
@@ -190,11 +184,15 @@ class BoardHandler(MyHandler):
                 return
             else: 
                 pinToAdd = self.request.get('addPin')
-                logging.info('pinToAdd=%s' % pinToAdd)
-                if pinToAdd != None: 
+                if pinToAdd != None and pinToAdd != 'none': 
                     thePin = Pin.getPin(pinToAdd) #only add pin if it exists and its mine and its not already in.
                     if thePin != None and thePin.owner == self.user and not (thePin.key() in theBoard.pins):
                         theBoard.pins.append(thePin.key())
+                pinToDelete = self.request.get('deletePin')
+                if pinToDelete != None and pinToDelete != 'none': #delete a pin 
+                    thePin = Pin.getPin(pinToDelete) 
+                    if thePin != None and thePin.owner == self.user and (thePin.key() in theBoard.pins):
+                        theBoard.pins.remove(thePin.key())
                 theBoard.title = title
                 theBoard.private = private
                 theBoard.put()

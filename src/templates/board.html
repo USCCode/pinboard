@@ -7,8 +7,8 @@
     {% for pin in boardPins %}
     <div class="thumbbox">
     <a href="/pin/{{ pin.id() }}">
-    <img class="thumbPin" title="click to edit this pin" alt="{{ pin.caption }}" src="{{ pin.imgUrl }}"/></a>
-    Taken on {{ pin.date.strftime('%B %d, %Y at %H:%M') }}<br/>
+    <img class="thumbPin" title="Pin {{ pin.id() }}" alt="{{ pin.caption }}" src="{{ pin.imgUrl }}"/></a>
+    Pin {{ pin.id() }}<br/>
     <span class="displayCaption" id="caption">
     {{ pin.caption }}
     </span> 
@@ -23,10 +23,18 @@
 	  <label for="private">Private:</label> <input type="checkbox" name="private" 
 	     {% if board.private %}checked {% endif %} /><br/>
 	  <label for="addPin">Add Pin: <select name="addPin" id="addPin">
-	  {% for p in myPins %}
+	  <option value="none">--</option>
+	  {% for p in myPins%}
 	  <option value="{{ p.id() }}">{{ p.id() }}</option>
 	  {% endfor %}
-	  </select></label>
+	  </select></label><br/>
+	  <label for="deletePin">Delete Pin: <select name="deletePin" id="deletePin">
+	  <option value="none">--</option>
+	  {% for p in boardPins %}
+	  <option value="{{ p.id() }}">{{ p.id() }}</option>
+	  {% endfor %}	  
+	  </select>
+	  </label>
 	  <input type="submit" value="Update Board Info"/>
 	  </form>
 	  <br />
