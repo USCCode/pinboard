@@ -17,11 +17,12 @@ from google.appengine.ext import db
 jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__) + "/templates"))
 
 class Pin(db.Model):
-    imgUrl = db.StringProperty()
+    imgUrl = db.StringProperty(required=True)
     caption = db.StringProperty(indexed=False)
     date = db.DateTimeProperty(auto_now_add=True)
-    owner = db.UserProperty()
+    owner = db.UserProperty(required=True)
     private = db.BooleanProperty(default=False)
+    boards = db.ListProperty(db.Key)
 
     def id(self):
         return self.key().id()
@@ -35,8 +36,8 @@ class Pin(db.Model):
     
     
 class Board(db.Model):
-    title = db.StringProperty()
-    owner = db.UserProperty()
+    title = db.StringProperty(required=True)
+    owner = db.UserProperty(required=True)
     private = db.BooleanProperty(default=False)
     pins = db.ListProperty(db.Key) #references to the pins in this pinboard
     
@@ -152,6 +153,12 @@ class BoardHandler(MyHandler):
             self.templateValues['board'] = theBoard
             self.templateValues['id'] = id
             self.templateValues['title'] = id
+            myPins = Pin.all().filter('owner =', self.user)            
+            self.templateValues['myPins'] = myPins
+            boardPins = []
+            for p in theBoard.pins:
+                boardPins.append(Pin.get(p))
+            self.templateValues['boardPins']= boardPins
             self.render('board.html')
         else:
             self.redirect('/')
@@ -182,6 +189,12 @@ class BoardHandler(MyHandler):
                 self.redirect('/board/')            
                 return
             else: 
+                pinToAdd = self.request.get('addPin')
+                logging.info('pinToAdd=%s' % pinToAdd)
+                if pinToAdd != None: 
+                    thePin = Pin.getPin(pinToAdd) #only add pin if it exists and its mine and its not already in.
+                    if thePin != None and thePin.owner == self.user and not (thePin.key() in theBoard.pins):
+                        theBoard.pins.append(thePin.key())
                 theBoard.title = title
                 theBoard.private = private
                 theBoard.put()

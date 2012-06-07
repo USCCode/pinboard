@@ -3,18 +3,36 @@
 {% block header %}{{ header }}{% endblock %}
 {% block content %}
     <h1>{{ board.title }}</h1>
+    
+    {% for pin in boardPins %}
+    <div class="thumbbox">
+    <a href="/pin/{{ pin.id() }}">
+    <img class="thumbPin" title="click to edit this pin" alt="{{ pin.caption }}" src="{{ pin.imgUrl }}"/></a>
+    Taken on {{ pin.date.strftime('%B %d, %Y at %H:%M') }}<br/>
+    <span class="displayCaption" id="caption">
+    {{ pin.caption }}
+    </span> 
+    </div>
+    {% endfor %}
+
+    
     <div class="displaybox">
        Edit this board:
 	  <form method="post" action="/board/{{ id }}">
 	  <label for="imgUrl">Title:</label> <input type="text" name="title" value="{{ board.title }}"/><br/>
 	  <label for="private">Private:</label> <input type="checkbox" name="private" 
 	     {% if board.private %}checked {% endif %} /><br/>
+	  <label for="addPin">Add Pin: <select name="addPin" id="addPin">
+	  {% for p in myPins %}
+	  <option value="{{ p.id() }}">{{ p.id() }}</option>
+	  {% endfor %}
+	  </select></label>
 	  <input type="submit" value="Update Board Info"/>
 	  </form>
 	  <br />
 	  <form methodaction="/board/{{ id }}">
 	  <input type="hidden" name="cmd" value="delete"/>
 	  <input type="submit" value="Delete this Board" />
-	  </form>
+	  </form>	  
     </div>
 {% endblock %}
