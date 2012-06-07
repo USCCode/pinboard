@@ -22,7 +22,7 @@ class Pin(db.Model):
     date = db.DateTimeProperty(auto_now_add=True)
     owner = db.UserProperty(required=True)
     private = db.BooleanProperty(default=False)
-    boards = db.ListProperty(db.Key)
+    boards = db.ListProperty(db.Key,default=[]) #references to the pins in this pinboard
 
     def id(self):
         return self.key().id()
@@ -39,10 +39,23 @@ class Board(db.Model):
     title = db.StringProperty(required=True)
     owner = db.UserProperty(required=True)
     private = db.BooleanProperty(default=False)
-    pins = db.ListProperty(db.Key) #references to the pins in this pinboard
+    pins = db.ListProperty(db.Key,default=[]) #references to the pins in this pinboard
     
     def id(self):
         return self.key().id()
+    
+    def addPin(self,pin):
+        """Adds pin to pins, and this board to that pin's boards. Note that you still need to do 
+        a self.put() and pin.put() after calling this!"""
+        if (not pin.key() in self.pins):
+            self.pins.append(pin.key())
+            pin.boards.append(self.key())
+    
+    def deletePin(self,pin):
+        """Deletes pin from this board's pins,and this board from pin's boards list."""
+        if (pin.key() in self.pins):
+            self.pins.remove(pin.key())
+            pin.boards.remove(self.key())
 
     @staticmethod    
     def getBoard(id):
@@ -50,6 +63,7 @@ class Board(db.Model):
         key = db.Key.from_path('Board', long(id))
         theBoard = db.get(key)
         return theBoard
+    
     
     
 class MyHandler(webapp2.RequestHandler):
@@ -96,6 +110,10 @@ class PinHandler(MyHandler):
             self.templateValues['pin'] = thePin
             self.templateValues['id'] = id
             self.templateValues['title'] = id
+            theBoards = []
+            for p in thePin.boards:
+                theBoards.append(Board.get(p))
+            self.templateValues['boards'] = theBoards
             self.render('pin.html')
         else:
             self.redirect('/')
@@ -187,12 +205,14 @@ class BoardHandler(MyHandler):
                 if pinToAdd != None and pinToAdd != 'none': 
                     thePin = Pin.getPin(pinToAdd) #only add pin if it exists and its mine and its not already in.
                     if thePin != None and thePin.owner == self.user and not (thePin.key() in theBoard.pins):
-                        theBoard.pins.append(thePin.key())
+                        theBoard.addPin(thePin)
+                        thePin.put()
                 pinToDelete = self.request.get('deletePin')
                 if pinToDelete != None and pinToDelete != 'none': #delete a pin 
                     thePin = Pin.getPin(pinToDelete) 
                     if thePin != None and thePin.owner == self.user and (thePin.key() in theBoard.pins):
-                        theBoard.pins.remove(thePin.key())
+                        theBoard.deletePin(thePin)
+                        thePin.put()
                 theBoard.title = title
                 theBoard.private = private
                 theBoard.put()

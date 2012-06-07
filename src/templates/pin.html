@@ -31,4 +31,12 @@
     <p>You must login first.</p>    
     {% endif %}
     </div>
+    
+    <div class="displaybox">
+      {% for board in boards %}
+      In <a href="/board/{{ board.id() }}">{{ board.title }}</a> board.<br/>
+      {% endfor %}
+    </div>      
+
+    
 {% endblock %}
