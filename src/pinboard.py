@@ -107,7 +107,7 @@ class PinHandler(MyHandler):
             return
         if (not thePin.private) or self.user == thePin.owner:
             if self.user == thePin.owner:
-                self.templateValues['owner'] = True
+                self.templateValues['editor'] = True
             self.templateValues['pin'] = thePin
             self.templateValues['id'] = id
             self.templateValues['title'] = id
