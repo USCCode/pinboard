@@ -63,8 +63,7 @@ class Board(db.Model):
         key = db.Key.from_path('Board', long(id))
         theBoard = db.get(key)
         return theBoard
-    
-    
+
     
 class MyHandler(webapp2.RequestHandler):
     "Setup self.user and self.templateValues values."
@@ -202,10 +201,10 @@ class BoardHandler(MyHandler):
             if theBoard == None:
                 self.redirect('/')  
                 return            
-            if theBoard.owner != self.user: #not his pin, kick him out.
+            if theBoard.owner != self.user: #not his board, kick him out.
                 self.redirect('/')
                 return
-            if command == 'delete': #delete the pin
+            if command == 'delete': #delete the board
                 theBoard.delete()
                 self.redirect('/board/')            
                 return
@@ -215,7 +214,7 @@ class BoardHandler(MyHandler):
                     thePin = Pin.getPin(pinToAdd) #only add pin if it exists and its mine and its not already in.
                     if thePin != None and thePin.owner == self.user and not (thePin.key() in theBoard.pins):
                         theBoard.addPin(thePin)
-                        thePin.put()
+                        thePin.put() #needed because addPin changes the pin
                 pinToDelete = self.request.get('deletePin')
                 if pinToDelete != None and pinToDelete != 'none': #delete a pin 
                     thePin = Pin.getPin(pinToDelete) 
