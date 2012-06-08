@@ -2,15 +2,29 @@ var pinboardHostname = 'localhost:8080';
 
 function generateNewPage(){
 	//Get all the images from the current page
-	var imgUrls = $('img').map(function(){return this.src});
-	document.write('<html><head></head><body><h1>Pinboard</h2>');
-	document.write('<p>Pick from one of these images:</p><p>')
+	var imgs = document.getElementsByTagName('img');
+	var imgUrls = []; //copy the urls into this array
+	for (var i = 0; i < imgs.length; i ++){
+		imgUrls.push(imgs[i].src);
+	};
+	var html = document.getElementsByTagName('html')[0];
+	var body = document.getElementsByTagName('body')[0];
+	html.removeChild(body); //erase the current body
+	body = document.createElement('BODY'); //create new one
+	var newHtml = '<html><head></head><body><h1>Pinboard</h2>' +
+				 '<p>Pick from one of these images:</p><p>';
+	console.log(imgs.length);
 	for (var i = 0; i < imgUrls.length; i++){
-		document.write('<div><img style="width:200px" src="' +imgUrls[i] + '"/><br/><form method="post" action="http://' 
+		console.log(i);
+		newHtml = newHtml + '<div><img style="width:200px" src="' 
+			    + imgUrls[i] + '"/><br/><form method="post" action="http://' 
 				+ pinboardHostname +'/pin/">' 
 				+ '<input type="hidden" name="imgUrl" value="' + imgUrls[i]
-		        +  '"/><input type="submit" value="This One"/></form></div>&nbsp;')
-	}
-	document.write('</p></html>')
-	
+		        +  '"/><input type="submit" value="This One"/></form></div>&nbsp;';
+	};
+	newHtml = newHtml + '</p>';
+	body.innerHTML = newHtml;
+	html.appendChild(body);
 }
+
+generateNewPage();

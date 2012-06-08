@@ -7,6 +7,11 @@
 <h1>Bookmarklet Test</h1>
 <p>This is my page with a bunch of test pictures</p>
 
+<p>Grab this 
+<a href="javascript:(function(){ _my_script=document.createElement('SCRIPT');_my_script.type='text/javascript';_my_script.src='http://localhost:8080/js/bookmarklet.js?x='+(Math.random());document.getElementsByTagName('head')[0].appendChild(_my_script);})();">Pin It!</a> link and put it on your bookmarks bar.
+</p>
+<p>That is all!</p>
+
 <ul>
 	<li><img src="/pic/1.jpeg" alt="" /></li>
 	<li><img src="/pic/2.jpeg" alt="" /></li>
@@ -15,9 +20,7 @@
 	<li><img src="/pic/5.jpeg" alt="" /></li>
 </ul>
 
-
 <script type="text/javascript" src="/js/jquery-1.7.2.min.js"> </script>
-<script type="text/javascript" src="/js/bookmarklet.js"></script>	
 <!-- the script below is for livereload app. Remove before deployment -->
 <!--  <script>document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1"></' + 'script>')</script>
  -->
