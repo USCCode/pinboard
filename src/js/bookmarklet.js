@@ -19,10 +19,12 @@ function generateNewPage(){
 	for (var url in imgUrls){
 		console.log(i);
 		newHtml += '<div class="pic" style="width:200px;float:left"><img style="width:100%" src="'+ url 
-		        +'"/><p style="width:100%;text-align:center;font-style:italic">'+ imgUrls[url][0] + ' x ' + imgUrls[url][1] + '</p><form style="margin-left:auto;margin-right:auto;width:5em" method="post" action="http://' 
+		        +'"/><p style="width:100%;text-align:center;font-style:italic">'+ imgUrls[url][0] + ' x ' + imgUrls[url][1] 
+		        + '</p><form style="width:100%" method="post" action="http://' 
 				+ pinboardHostname +'/pin/">'
 				+ '<input type="hidden" name="imgUrl" value="' + url
-		        +  '"/><br/><input type="submit" value="This One"/></form><br/></div>&nbsp;';
+		        +  '"/><label for="caption">Caption: <input type="text" name="caption"></label></input><br/>'
+		        + '<div style="width:100%;margin:10px auto 0 auto;text-align:center"><input type="submit" value="This One"/></div></form><br/></div>&nbsp;';
 	};
 	newHtml += '</p>';
 	body.innerHTML = newHtml;
