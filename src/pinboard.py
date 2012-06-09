@@ -5,7 +5,7 @@ www.csce242.com
 
 @author: Jose M Vidal <jmvidal@gmail.com>
 
-Homework 5
+Homework 6
 '''
 import webapp2
 import jinja2
