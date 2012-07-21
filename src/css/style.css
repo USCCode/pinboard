@@ -94,6 +94,10 @@ li {
 	width: 80%;
 }
 
+.displayCaption:hover {
+	background-color: #fff;
+}
+
 .thumbPin, .thumbCaption {
 	margin-left: 10%;
 	margin-right: 10%;	
@@ -101,3 +105,8 @@ li {
 	float: left;
 }
 
+
+input {
+	font-size:100%;
+	font-family: serif;
+}
