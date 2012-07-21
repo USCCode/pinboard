@@ -92,6 +92,7 @@ li {
     margin-left: 10%;
 	margin-right: 10%;	
 	width: 80%;
+	background-color: #fee;
 }
 
 .displayCaption:hover {
@@ -107,6 +108,6 @@ li {
 
 
 input {
-	font-size:100%;
+	font-size: 100%; 
 	font-family: serif;
 }

@@ -5,37 +5,26 @@
     <h1>Pin {{ title }}</h1>
     {% if pin.imgUrl %}
     <div class="displaybox">
-    <img class="displayPin" alt="{{ pin.caption }}" src="{{ pin.imgUrl }}"/>
+    <img id="pinimg" pinid="{{ id }}" class="displayPin" alt="{{ pin.caption }}" src="{{ pin.imgUrl }}"/>
     <div href="#" class="displayCaption" id="caption">
     {{ pin.caption }}
     </div>
+    Private: <input type="checkbox" id="privatecheckbox" name="private" {% if pin.private %}checked {% endif %} /><br/>
     Added on {{ pin.date.strftime('%B %d, %Y at %H:%M') }}.<br/>
-    </div>
-    {% endif %}
-
-    {% if editor %}
-     <div class="displaybox">
 	  <form method="post" action="/pin/{{ id }}">
-	  <label for="imgUrl">Image URL:</label> <input type="text" name="imgUrl" size="80" value="{{ pin.imgUrl }}"/><br/>
-	  <label for="caption">Caption:</label> <input type="text" name="caption" size="80" value="{{ pin.caption }}"/><br/>
-	  <label for="private">Private:</label> <input type="checkbox" name="private" 
-	     {% if pin.private %}checked {% endif %} /><br/>
-	  <input type="submit" value="Update Pin Info"/>
-	  </form>
-	  <br />
-	  <form methodaction="/pin/{{ id }}">
 	  <input type="hidden" name="cmd" value="delete"/>
 	  <input type="submit" value="Delete this Pin" />
 	  </form>
-    </div>	  
+    </div>
     {% endif %}
 
-    
     <div class="displaybox">
       {% for board in boards %}
       In <a href="/board/{{ board.id() }}">{{ board.title }}</a> board.<br/>
       {% endfor %}
-    </div>      
-<script src="/js/script.js"></script>
-    
+    </div>
+          
+    {% if editor %}
+    <script src="/js/script.js"></script>
+    {% endif %}    
 {% endblock %}
