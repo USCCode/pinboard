@@ -62,6 +62,19 @@ body {
 	background-color: #fee;
 }
 
+.messagebox {
+	margin-left: auto;
+	margin-right: auto;
+	width: 50%;
+	height: 2em;
+}
+
+.message{
+	background-color: #ee0;
+	text-align: center;
+	display: none;
+}
+
 .thumbbox{
 	margin-left: auto;
 	margin-right: auto;

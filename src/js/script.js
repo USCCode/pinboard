@@ -6,24 +6,52 @@ function getCheckedValue(){
 
 /** Returns a pin JSON object that reflects the currently displayed pin. */
 function getPin(){
-	thePin = {
+	var pin = {
 		id: $('#pinimg').attr('pinid'),
 		caption: $('#caption').text().trim(),
 		imgUrl: $('#pinimg').attr('src'),
 	    private: getCheckedValue()
 	};
-	return thePin;
+	return pin;
+}
+
+/** Updates the view with thePin values. */ 
+function updatePage(){
+	$('#caption').text(thePin.caption);
+	if (thePin.private == "on") {
+		$('#privatecheckbox').attr('checked',"");
+	} else {
+		$('#privatecheckbox').removeAttr('checked');
+	}
+}
+
+function displayErrorMessage(){
+	$('.message').text("Error updating Pin");
+	$('.message').show();
+	updatePage();
+	setTimeout(function(){
+		$('.message').hide();
+	}, 2000);
 }
 
 /** Does an XHR POST back to the server to update thePin's information.
   * */
 function updateOnServer(){
 	console.log("Sending.");
-	var thePin = getPin();
-	$.post('/pin/' + thePin.id, thePin, function(data){
-		console.log("Done.");
+	var newPin = getPin();
+	$.ajax('/pin/' + newPin.id,
+			{
+		data: newPin,
+		type: "POST",
+		success: function(data){
+			thePin = newPin;
+			console.log("Done.");
+		},
+		error: function(jqxhr, status){
+			console.log("error:" + status);
+			displayErrorMessage();
 		}
-	);
+	});
 }
 
 function replaceWithText(){
@@ -49,11 +77,14 @@ function replaceWithTextbox(){
 	$('#captionedit').focus();
 	$('#captionedit').on("blur", replaceWithText);
 	$('#captionedit').on("keypress", keypressHandler);
-	}
+}
+
+var thePin;
 
 $(document).ready(function(){
 		console.log("Hello there");
 		$('#caption').on("click", replaceWithTextbox);
 		$('#privatecheckbox').on('change', updateOnServer);
+		thePin = getPin();
 	}
 );

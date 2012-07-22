@@ -122,6 +122,8 @@ class PinHandler(MyHandler):
     def post(self,id):
         """If /pin/ then create a new one, if /pin/123 then update it,
         if /pin/123?cmd=delete then delete it."""
+#        self.error(500)
+#        return
         self.setupUser()
         imgUrl = self.request.get('imgUrl')
         caption = self.request.get('caption')
@@ -151,8 +153,8 @@ class PinHandler(MyHandler):
                 thePin.put()
         key = thePin.key()
         newUrl = '/pin/%s' % key.id()
-        logging.info('Going to ' + newUrl)
-        self.redirect(newUrl)
+#        logging.info('Going to ' + newUrl)
+#        self.redirect(newUrl)
 
 class BoardHandler(MyHandler):
     def get(self,id): #/board/
