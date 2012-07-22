@@ -16,8 +16,9 @@ function getPin(){
 }
 
 /** Updates the view with thePin values. */ 
-function updatePage(){
+function updateView(){
 	$('#caption').text(thePin.caption);
+	$('#pinimg').attr('src',thePin.imgUrl);
 	if (thePin.private == "on") {
 		$('#privatecheckbox').attr('checked',"");
 	} else {
@@ -28,7 +29,7 @@ function updatePage(){
 function displayErrorMessage(){
 	$('.message').text("Error updating Pin");
 	$('.message').show();
-	updatePage();
+	updateView();
 	setTimeout(function(){
 		$('.message').hide();
 	}, 2000);
@@ -36,9 +37,10 @@ function displayErrorMessage(){
 
 /** Does an XHR POST back to the server to update thePin's information.
   * */
-function updateOnServer(){
+function sendToServer(){
 	console.log("Sending.");
 	var newPin = getPin();
+	newPin.xhr = true;
 	$.ajax('/pin/' + newPin.id,
 			{
 		data: newPin,
@@ -58,7 +60,7 @@ function replaceWithText(){
 	var text = $('#captionedit').val();
 	$('#captionedit').remove();
 	$('#caption').text(text);
-	updateOnServer();
+	sendToServer();
 	$('#caption').on("click", replaceWithTextbox);
 }
 
@@ -84,7 +86,7 @@ var thePin;
 $(document).ready(function(){
 		console.log("Hello there");
 		$('#caption').on("click", replaceWithTextbox);
-		$('#privatecheckbox').on('change', updateOnServer);
+		$('#privatecheckbox').on('change', sendToServer);
 		thePin = getPin();
 	}
 );

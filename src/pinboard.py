@@ -130,6 +130,7 @@ class PinHandler(MyHandler):
         command = self.request.get('cmd')
         private = self.request.get('private')
         private = True if (private == "on") else False
+        xhr = self.request.get('xhr') #true if this is an xhr call 
         owner = self.user
         if id == '': #new pin, create it
             thePin = Pin(imgUrl = imgUrl, caption = caption, owner = owner, private = private)
@@ -151,10 +152,11 @@ class PinHandler(MyHandler):
                 thePin.caption = caption
                 thePin.private = private
                 thePin.put()
-        key = thePin.key()
-        newUrl = '/pin/%s' % key.id()
-#        logging.info('Going to ' + newUrl)
-#        self.redirect(newUrl)
+        if not xhr:
+            key = thePin.key()
+            newUrl = '/pin/%s' % key.id()
+            logging.info('Going to ' + newUrl)
+            self.redirect(newUrl)
 
 class BoardHandler(MyHandler):
     def get(self,id): #/board/
