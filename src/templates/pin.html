@@ -9,12 +9,16 @@
     <div href="#" class="displayCaption" id="caption">
     {{ pin.caption }}
     </div>
+   {% if editor %}
     Private: <input type="checkbox" id="privatecheckbox" name="private" {% if pin.private %}checked {% endif %} /><br/>
+    {% endif %}    
     Added on {{ pin.date.strftime('%B %d, %Y at %H:%M') }}.<br/>
+    {% if editor %}
 	  <form method="post" action="/pin/{{ id }}">
 	  <input type="hidden" name="cmd" value="delete"/>
 	  <input type="submit" value="Delete this Pin" />
 	  </form>
+	{% endif %}    
     </div>
     {% endif %}
     <div class="messagebox"><div class="message">Hello</div></div>

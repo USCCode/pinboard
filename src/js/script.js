@@ -4,7 +4,10 @@ function getCheckedValue(){
 	return "on";
 }
 
-/** Returns a pin JSON object that reflects the currently displayed pin. */
+/** Returns a pin JSON object that reflects the currently displayed pin. 
+ * We are keeping the client-side model in the HTML and extracting it to json using 
+ *  this method. Another way is to keep the model in json and update the view (HTML) with
+ *  a method like updateView()*/
 function getPin(){
 	var pin = {
 		id: $('#pinimg').attr('pinid'),
@@ -15,7 +18,7 @@ function getPin(){
 	return pin;
 }
 
-/** Updates the view with thePin values. */ 
+/** Updates the view (HTML) to match the current thePin values. */ 
 function updateView(){
 	$('#caption').text(thePin.caption);
 	$('#pinimg').attr('src',thePin.imgUrl);
@@ -25,7 +28,7 @@ function updateView(){
 		$('#privatecheckbox').removeAttr('checked');
 	}
 }
-
+/** Show error message, put pin values back to thePin values */
 function displayErrorMessage(){
 	$('.message').text("Error updating Pin");
 	$('.message').show();
@@ -35,8 +38,7 @@ function displayErrorMessage(){
 	}, 2000);
 }
 
-/** Does an XHR POST back to the server to update thePin's information.
-  * */
+/** Does an XHR POST back to the server to update thePin's information. */
 function sendToServer(){
 	console.log("Sending.");
 	var newPin = getPin();
@@ -81,6 +83,9 @@ function replaceWithTextbox(){
 	$('#captionedit').on("keypress", keypressHandler);
 }
 
+/** thePin holds the json for the pin as it was before the user changed it. 
+ * We revert back to thePin if the server returns an error.
+ */
 var thePin;
 
 $(document).ready(function(){
