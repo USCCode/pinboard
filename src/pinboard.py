@@ -13,6 +13,7 @@ import os
 import logging #for debugging.
 from google.appengine.api import users
 from google.appengine.ext import db
+import json
 
 jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__) + "/templates"))
 
@@ -34,6 +35,10 @@ class Pin(db.Model):
         thePin = db.get(key)
         return thePin
     
+    def getDict(self):
+        """Returns a dictionary representation of parts of this pin."""
+        return {'imgUrl': self.imgUrl, 'caption': self.caption, 'private': self.private}
+
     
 class Board(db.Model):
     title = db.StringProperty(required=True)
@@ -64,6 +69,20 @@ class Board(db.Model):
         theBoard = db.get(key)
         return theBoard
 
+    def getPins(self,theUser):
+        """Returns this board's pins, that theUser can see."""
+        boardPins = []
+        for p in self.pins:
+            thePin = Pin.get(p)
+            if not thePin.private or thePin.owner == theUser: #only my pins, or public 
+                boardPins.append(thePin)
+        return boardPins    
+    
+    def getDict(self, theUser):
+        """Returns a dictionary representation of parts of this board."""
+        b = {'title': self.title, 'private': self.private}
+        b['pins'] = [pin.getDict() for pin in  self.getPins(theUser)]
+        return b
     
 class MyHandler(webapp2.RequestHandler):
     "Setup self.user and self.templateValues values."
@@ -81,6 +100,14 @@ class MyHandler(webapp2.RequestHandler):
         template = jinja_environment.get_template(file)
         self.response.out.write(template.render(self.templateValues))
         
+    def splitId(self,idstring):
+        end = idstring[-5:]
+        start = idstring[:-5]
+        if end == ".json":
+            return (start, "json") #a tuple: ("6", "json")
+        if end == ".html":
+            return (start, "html")
+        return (idstring, "html")
 
 class MainPageHandler(MyHandler):
     def get(self): #/ Ask user to login or show him links
@@ -170,8 +197,11 @@ class BoardHandler(MyHandler):
             self.templateValues['title'] = 'Your Boards'
             self.render('boardlist.html')
             return
+        (id, returnType) = self.splitId(id)
         theBoard = Board.getBoard(id)
-        if theBoard == None: return
+        if theBoard == None: 
+            self.redirect('/') 
+            return        
         if (not theBoard.private) or self.user == theBoard.owner:
             self.templateValues['board'] = theBoard
             self.templateValues['id'] = id
@@ -180,11 +210,16 @@ class BoardHandler(MyHandler):
                 self.templateValues['editor'] = True
             myPins = Pin.all().filter('owner =', self.user)            
             self.templateValues['myPins'] = myPins
-            boardPins = []
+            boardPins = theBoard.getPins(self.user)
             for p in theBoard.pins:
                 thePin = Pin.get(p)
                 if not thePin.private or thePin.owner == self.user: #only my pins, or public 
                     boardPins.append(thePin)
+            if returnType == "json":
+                self.response.headers["Content-Type"] = "application/javascript"
+                self.response.out.write(json.dumps(theBoard.getDict(self.user)))
+                return
+            #return type is html
             self.templateValues['boardPins']= boardPins
             self.render('board.html')
         else:
