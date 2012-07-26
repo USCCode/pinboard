@@ -6,6 +6,10 @@
     <h1 id="boardTitle"></h1>
     <div id="pins">
     </div>
+    <div class="displaybox">
+    Private:</label> <input type="checkbox" name="private" id="privatecheckbox" 
+	     {% if board.private %}checked {% endif %} /><br/>
+    </div>
     
     <div class="displaybox" id="pinstoadd">
     </div>

@@ -76,6 +76,11 @@ function removePinFromBoard(pinNumber){
 function drawBoard(){
 	$('#boardTitle').text(board.title);
 	$('#pins').html('');
+	if (board.private){
+		$('#privatecheckbox').attr('checked','');
+	} else {
+		$('#privatecheckbox').removeAttr('checked');
+	}
 	for (var i=0; i < board.pins.length; i++){
 		var pin = board.pins[i];
 		var pinHtml = viewPin(pin);
@@ -136,7 +141,28 @@ function getBoard(){
 	});
 }
 
+function getCheckedValue(){
+	if ($('#privatecheckbox').attr('checked')  == undefined)
+		return false;
+	return true;
+}
+
+function sendToServer(){
+	board.private =  getCheckedValue();
+	$.ajax('/board/' + board.boardid, {
+		type: "POST",
+		data: {
+			title: board.title,
+			addPin: 'none',
+			deletePin: 'none',
+			private: board.private },
+		success: function(data){
+			console.log('updated server');
+		}
+	});
+}
 
 $(document).ready(function(){
 	getBoard();
+	$('#privatecheckbox').on('change', sendToServer);
 });

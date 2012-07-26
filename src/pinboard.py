@@ -238,7 +238,7 @@ class BoardHandler(MyHandler):
         title = self.request.get('title')
         command = self.request.get('cmd')
         private = self.request.get('private')
-        private = True if (private == "on") else False
+        private = True if (private == "true") else False
         owner = self.user
         if id == '': #new board, create it
             theBoard = Board(title = title, owner = owner, private = private)
@@ -257,13 +257,16 @@ class BoardHandler(MyHandler):
                 return
             else: 
                 pinToAdd = self.request.get('addPin')
-                if pinToAdd != None and pinToAdd != 'none': 
+                logging.info('pintoadd=%s=' % pinToAdd)
+                if pinToAdd != None and pinToAdd != '' and pinToAdd != 'none':
+                    logging.info('adding pin') 
                     thePin = Pin.getPin(pinToAdd) #only add pin if it exists and its mine and its not already in.
                     if thePin != None and thePin.owner == self.user and not (thePin.key() in theBoard.pins):
                         theBoard.addPin(thePin)
                         thePin.put() #needed because addPin changes the pin
                 pinToDelete = self.request.get('deletePin')
-                if pinToDelete != None and pinToDelete != 'none': #delete a pin 
+                if pinToDelete != None and pinToDelete != '' and pinToDelete != 'none': #delete a pin
+                    logging.info('deleting pin')  
                     thePin = Pin.getPin(pinToDelete) 
                     if thePin != None and thePin.owner == self.user and (thePin.key() in theBoard.pins):
                         theBoard.deletePin(thePin)
