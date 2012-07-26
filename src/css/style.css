@@ -89,6 +89,9 @@ body {
 .addbox{
 	width: 200px;
 	display: inline-block;
+	border: 2px solid gray;
+	margin: 2px;
+	padding: 3px;
 }
 
 li {
@@ -106,8 +109,15 @@ li {
 	
 }
 
-.displayPin, .displayCaption{
+.displayPin{
     margin-left: 10%;
+	margin-right: 10%;	
+	width: 80%;
+	background-color: #fee;
+}
+
+.displayCaption{
+    margin-left: 0%;
 	margin-right: 10%;	
 	width: 80%;
 	background-color: #fee;
@@ -117,11 +127,16 @@ li {
 	background-color: #fff;
 }
 
-.thumbPin, .thumbCaption {
+.thumbPin {
+	margin: 5%;
+	width: 20%;
+	vertical-align: text-top;
+}
+
+.thumbCaption {
 	margin-left: 10%;
 	margin-right: 10%;	
 	width: 20%;
-	float: left;
 }
 
 

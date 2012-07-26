@@ -1,11 +1,11 @@
 function viewPin(pin){
-	return'<div class="thumbbox"><a href="/pin/'+ pin.pinid +'">' +
+	return'<div class="thumbbox">' + 
+	    '<a href="/pin/'+ pin.pinid +'">' +
 		'<img class="thumbPin" title="Pin '+ pin.pinid +'" alt="'+ pin.caption +'" src="'+
 		pin.imgUrl + '"/></a>' +
-        'Pin '+ pin.pinid + '<br/>' +
-        '<span class="displayCaption" id="caption">' +
+        '<span>' +
         pin.caption + 
-        '</span><br/><input onclick="removePin('+ pin.pinid+')" type="button" value="Remove"></input></div>';
+        '</span><br/><input style="text-align:center" onclick="removePin('+ pin.pinid+')" type="button" value="Remove"></input><br stle="clear:both"/></div>';
 }
 
 
@@ -13,7 +13,6 @@ function viewPinToAdd(pin){
 		return'<div id="addpin'+ pin.pinid + '" class="addbox"><a href="/pin/'+ pin.pinid +'">' +
 		'<img class="thumbPin" title="Pin '+ pin.pinid +'" alt="'+ pin.caption +'" src="'+
 		pin.imgUrl + '"/></a>' +
-        'Pin '+ pin.pinid + '<br/>' +
         '<span class="displayCaption" id="caption">' +
         pin.caption + 
         '</span><br/><input onclick="addPin('+ pin.pinid+')" type="button" value="Add"></input></div>';
@@ -21,12 +20,33 @@ function viewPinToAdd(pin){
 
 function removePin(pinNumber){
 	removePinFromBoard(pinNumber);
+	$.ajax('/board/' + board.boardid, {
+		type: "POST",
+		data: {
+			title: board.title,
+			addPin: 'none',
+			deletePin: pinNumber},
+		success: function(data){
+			console.log('removed pin');
+		}
+	});
+
 	drawBoard();
 	drawExtrapins();
 }
 
 function addPin(pinNumber){
 	movePinToBoard(pinNumber);
+	$.ajax('/board/' + board.boardid, {
+		type: "POST",
+		data: {
+			title: board.title,
+			addPin: pinNumber,
+			deletePin: 'none'},
+		success: function(data){
+			console.log('added pin');
+		}
+	});
 	drawBoard();
 	drawExtrapins();
 }
@@ -60,6 +80,9 @@ function drawBoard(){
 		var pin = board.pins[i];
 		var pinHtml = viewPin(pin);
 		$('#pins').append(pinHtml);
+	}
+	if (board.pins.length == 0){
+		$('#pins').html('<div class="thumbbox">Board is empty.</div>');
 	}
 }
 
@@ -104,7 +127,7 @@ function getBoard(){
 			drawBoard(data);
 		}
 	});
-	$.ajax('/pin/?json', {
+	$.ajax('/pin/?fmt=json', {
 		type: 'GET',
 		success: function(data){
 			allPins = data;

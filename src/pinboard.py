@@ -80,7 +80,7 @@ class Board(db.Model):
     
     def getDict(self, theUser):
         """Returns a dictionary representation of parts of this board."""
-        b = {'title': self.title, 'private': self.private}
+        b = {'title': self.title, 'private': self.private, 'boardid': self.id()}
         b['pins'] = [pin.getDict() for pin in  self.getPins(theUser)]
         return b
     
@@ -122,10 +122,11 @@ class PinHandler(MyHandler):
     def get(self,id):
         self.setupUser()    
         logging.info('id is=%s' % id)
-        jsonRequest = self.request.get('json') #if not None, he wants it in json
+        fmt = self.request.get('fmt') #if not None, he wants it in json
+        logging.info('fmt=%s=' % fmt)
         if id == '': # GET /pin returns the list of pins for this user/ 
             query = Pin.all().filter('owner =', self.user) #Remember: "owner=" won't work!!!
-            if jsonRequest == None:
+            if fmt == '':
                 self.templateValues['pins'] = query
                 self.templateValues['title'] = 'Your Pins'
                 self.render('pinlist.html')
@@ -270,9 +271,9 @@ class BoardHandler(MyHandler):
                 theBoard.title = title
                 theBoard.private = private
                 theBoard.put()
-        key = theBoard.key()
-        newUrl = '/board/%s' % key.id()
-        self.redirect(newUrl)
+#        key = theBoard.key()
+#        newUrl = '/board/%s' % key.id()
+#        self.redirect(newUrl)
 
 
 app = webapp2.WSGIApplication([('/pin/(.*)', PinHandler), ('/pin()', PinHandler),
