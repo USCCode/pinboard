@@ -7,6 +7,14 @@
     <div id="pins">
     </div>
     
+    <div class="displaybox">
+      Add Pin: <select name="addPin" id="addPin">
+	    <option value="none">--</option>
+	  {% for p in myPins%}
+	    <option value="{{ p.id() }}">{{ p.id() }}</option>
+	  {% endfor %}</select>
+    </div>
+    
     <script src="/js/bscript.js"></script>
 
     {% if editor %}    

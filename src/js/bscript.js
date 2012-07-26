@@ -18,12 +18,22 @@ function drawBoard(data){
 	}
 }
 
+var allPins;
+var board;
+
 function getBoard(){
 	var boardid = location.pathname.split('/')[2];
 	$.ajax('/board/' + boardid + '.json', {
 		type: 'GET',
 		success: function(data){
+			board = data;
 			drawBoard(data);
+		}
+	});
+	$.ajax('/pin/?json', {
+		type: 'GET',
+		success: function(data){
+			allPins = data;
 		}
 	});
 }

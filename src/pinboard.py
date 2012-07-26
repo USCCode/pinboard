@@ -122,12 +122,19 @@ class PinHandler(MyHandler):
     def get(self,id):
         self.setupUser()    
         logging.info('id is=%s' % id)
-        if id == '': # GET /pin returns the list of pins for this user
+        jsonRequest = self.request.get('json') #if not None, he wants it in json
+        if id == '': # GET /pin returns the list of pins for this user/ 
             query = Pin.all().filter('owner =', self.user) #Remember: "owner=" won't work!!!
-            self.templateValues['pins'] = query
-            self.templateValues['title'] = 'Your Pins'
-            self.render('pinlist.html')
-            return
+            if jsonRequest == None:
+                self.templateValues['pins'] = query
+                self.templateValues['title'] = 'Your Pins'
+                self.render('pinlist.html')
+                return
+            else: #return json
+                pins = [pin.getDict() for pin in query]
+                self.response.headers["Content-Type"] = "text/json"
+                self.response.out.write(json.dumps(pins))
+                return
         thePin = Pin.getPin(id)
         if thePin == None:
             self.redirect('/') 
