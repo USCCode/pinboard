@@ -86,6 +86,11 @@ body {
 	background-color: #fee;
 }
 
+.addbox{
+	width: 200px;
+	display: inline-block;
+}
+
 li {
 	margin-left: 2em;
 }
