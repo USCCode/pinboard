@@ -2,22 +2,13 @@
 {% block title %}{{ title }}{% endblock %}
 {% block header %}{{ header }}{% endblock %}
 {% block content %}
-    <h1>{{ board.title }}</h1>
-    
-    <div class="pins">
-    {% for pin in boardPins %}
-        <div class="thumbbox">
-        <a href="/pin/{{ pin.id() }}">
-        <img class="thumbPin" title="Pin {{ pin.id() }}" alt="{{ pin.caption }}" src="{{ pin.imgUrl }}"/></a>
-        Pin {{ pin.id() }}<br/>
-        <span class="displayCaption" id="caption">
-        {{ pin.caption }}
-        </span>
-        <p style="clear:both"></p>
-        </div>
-    {% endfor %}
+
+    <h1 id="boardTitle"></h1>
+    <div id="pins">
     </div>
     
+    <script src="/js/bscript.js"></script>
+
     {% if editor %}    
     <div class="displaybox">
        Edit this board:

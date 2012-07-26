@@ -37,7 +37,7 @@ class Pin(db.Model):
     
     def getDict(self):
         """Returns a dictionary representation of parts of this pin."""
-        return {'imgUrl': self.imgUrl, 'caption': self.caption, 'private': self.private}
+        return {'imgUrl': self.imgUrl, 'pinid': self.id(), 'caption': self.caption, 'private': self.private}
 
     
 class Board(db.Model):
@@ -216,7 +216,7 @@ class BoardHandler(MyHandler):
                 if not thePin.private or thePin.owner == self.user: #only my pins, or public 
                     boardPins.append(thePin)
             if returnType == "json":
-                self.response.headers["Content-Type"] = "application/javascript"
+                self.response.headers["Content-Type"] = "text/json"
                 self.response.out.write(json.dumps(theBoard.getDict(self.user)))
                 return
             #return type is html
