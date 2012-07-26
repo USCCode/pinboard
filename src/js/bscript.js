@@ -5,7 +5,7 @@ function viewPin(pin){
         'Pin '+ pin.pinid + '<br/>' +
         '<span class="displayCaption" id="caption">' +
         pin.caption + 
-        '</span></div>';
+        '</span><br/><input onclick="removePin('+ pin.pinid+')" type="button" value="Remove"></input></div>';
 }
 
 
@@ -17,6 +17,12 @@ function viewPinToAdd(pin){
         '<span class="displayCaption" id="caption">' +
         pin.caption + 
         '</span><br/><input onclick="addPin('+ pin.pinid+')" type="button" value="Add"></input></div>';
+}
+
+function removePin(pinNumber){
+	removePinFromBoard(pinNumber);
+	drawBoard();
+	drawExtrapins();
 }
 
 function addPin(pinNumber){
@@ -35,6 +41,17 @@ function movePinToBoard(pinNumber){
 		}
 	}
 }
+
+function removePinFromBoard(pinNumber){
+	console.log('remove' + pinNumber);
+	var pin;
+	for (var i=0; i < board.pins.length; i++){
+		if (board.pins[i].pinid == pinNumber){
+			board.pins.splice(i,1);
+		}
+	}
+}
+
 
 function drawBoard(){
 	$('#boardTitle').text(board.title);
