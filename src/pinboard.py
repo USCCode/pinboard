@@ -4,6 +4,9 @@ Created on May 16, 2012
 www.csce242.com
 
 @author: Jose M Vidal <jmvidal@gmail.com>
+
+TODO: when I delete a board, also delete it on all the pin.boards that have it????
+Q: when do I do the put()? in
 '''
 import webapp2
 import jinja2
@@ -21,7 +24,7 @@ class Pin(db.Model):
     date = db.DateTimeProperty(auto_now_add=True)
     owner = db.UserProperty(required=True)
     private = db.BooleanProperty(default=False)
-    boards = db.ListProperty(db.Key,default=[]) #references to the pins in this pinboard
+    boards = db.ListProperty(db.Key,default=[]) #references to the boards this pin is in, some might not exist anymore
 
     def id(self):
         return self.key().id()
@@ -36,13 +39,19 @@ class Pin(db.Model):
     def getDict(self):
         """Returns a dictionary representation of parts of this pin."""
         return {'imgUrl': self.imgUrl, 'pinid': self.id(), 'caption': self.caption, 'private': self.private}
-
+    
+    def remove(self):
+        for b in self.boards:
+            theBoard = Board.get(b) 
+            theBoard.pins.remove(self.key())
+            theBoard.put()
+        self.delete()
     
 class Board(db.Model):
     title = db.StringProperty(required=True)
     owner = db.UserProperty(required=True)
     private = db.BooleanProperty(default=False)
-    pins = db.ListProperty(db.Key,default=[]) #references to the pins in this pinboard
+    pins = db.ListProperty(db.Key,default=[]) #references to the pins in this pinboard, some might not exist anymore
     
     def id(self):
         return self.key().id()
@@ -59,6 +68,14 @@ class Board(db.Model):
         if (pin.key() in self.pins):
             self.pins.remove(pin.key())
             pin.boards.remove(self.key())
+            
+    def remove(self):
+        """Deletes this board, and removes it from all the pins that have it."""
+        for p in self.pins:
+            thepin = Pin.get(p)
+            thepin.boards.remove(self.key())
+            thepin.put()
+        self.delete()
 
     @staticmethod    
     def getBoard(id):
@@ -186,7 +203,7 @@ class PinHandler(MyHandler):
                 self.redirect('/')
                 return
             if command == 'delete': #delete the pin
-                thePin.delete()
+                thePin.remove()
                 self.redirect('/pin/')            
                 return
             else: #existing pin, update it 
@@ -263,7 +280,7 @@ class BoardHandler(MyHandler):
                 self.redirect('/')
                 return
             if command == 'delete': #delete the board
-                theBoard.delete()
+                theBoard.remove()
                 self.redirect('/board/')            
                 return
             else: 

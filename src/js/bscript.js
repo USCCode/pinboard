@@ -30,7 +30,6 @@ function removePin(pinNumber){
 			console.log('removed pin');
 		}
 	});
-
 	drawBoard();
 	drawExtrapins();
 }
