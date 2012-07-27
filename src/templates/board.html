@@ -9,6 +9,12 @@
     <div class="displaybox">
     Private:</label> <input type="checkbox" name="private" id="privatecheckbox" 
 	     {% if board.private %}checked {% endif %} /><br/>
+
+	  <form method="post" action="/board/{{ id }}">
+	  <input type="hidden" name="cmd" value="delete"/>
+	  <input type="submit" value="Delete this Board" />
+	  </form>	  
+	     
     </div>
     
     <div class="displaybox" id="pinstoadd">
@@ -16,33 +22,4 @@
     
     <script src="/js/bscript.js"></script>
 
-    {% if editor %}    
-    <div class="displaybox">
-       Edit this board:
-	  <form method="post" action="/board/{{ id }}">
-	  <label for="imgUrl">Title:</label> <input type="text" name="title" value="{{ board.title }}"/><br/>
-	  <label for="private">Private:</label> <input type="checkbox" name="private" 
-	     {% if board.private %}checked {% endif %} /><br/>
-	  <label for="addPin">Add Pin: <select name="addPin" id="addPin">
-	  <option value="none">--</option>
-	  {% for p in myPins%}
-	  <option value="{{ p.id() }}">{{ p.id() }}</option>
-	  {% endfor %}
-	  </select></label><br/>
-	  <label for="deletePin">Delete Pin: <select name="deletePin" id="deletePin">
-	  <option value="none">--</option>
-	  {% for p in boardPins %}
-	  <option value="{{ p.id() }}">{{ p.id() }}</option>
-	  {% endfor %}	  
-	  </select>
-	  </label>
-	  <input type="submit" value="Update Board Info"/>
-	  </form>
-	  <br />
-	  <form methodaction="/board/{{ id }}">
-	  <input type="hidden" name="cmd" value="delete"/>
-	  <input type="submit" value="Delete this Board" />
-	  </form>	  
-    </div>
-    {% endif %}
 {% endblock %}

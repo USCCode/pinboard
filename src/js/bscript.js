@@ -162,7 +162,36 @@ function sendToServer(){
 	});
 }
 
+
+function replaceWithText(){
+	var text = $('#titleedit').val();
+	board.title = text;
+	$('#titleedit').remove();
+	$('#boardTitle').text(text);
+	sendToServer();
+	$('#boardTitle').on("click", replaceWithTextbox);
+}
+
+function keypressHandler(e){
+	if (e.which == 13) { //enter key
+		replaceWithText();
+		e.preventDefault();
+	}
+}
+
+function replaceWithTextbox(){	
+	$(this).off("click");
+	var text = $(this).text().trim();
+	$(this).text('');
+	$(this).html('<input id="titleedit" size="60" type="text" value="' + text + '"></input>');
+	$('#titleedit').focus();
+	$('#titleedit').on("blur", replaceWithText);
+	$('#titleedit').on("keypress", keypressHandler);
+}
+
+
 $(document).ready(function(){
 	getBoard();
 	$('#privatecheckbox').on('change', sendToServer);
+	$('#boardTitle').on('click', replaceWithTextbox);
 });
