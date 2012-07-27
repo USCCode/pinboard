@@ -250,7 +250,11 @@ class BoardHandler(MyHandler):
         if id == '': #new board, create it
             theBoard = Board(title = title, owner = owner, private = private)
             theBoard.put()
-        else:
+            key = theBoard.key()
+            newUrl = '/board/%s' % key.id()
+            self.redirect(newUrl)
+            return
+        else: #update existing board
             theBoard = Board.getBoard(id)
             if theBoard == None:
                 self.redirect('/')  
@@ -281,9 +285,6 @@ class BoardHandler(MyHandler):
                 theBoard.title = title
                 theBoard.private = private
                 theBoard.put()
-#        key = theBoard.key()
-#        newUrl = '/board/%s' % key.id()
-#        self.redirect(newUrl)
 
 
 app = webapp2.WSGIApplication([('/pin/(.*)', PinHandler), ('/pin()', PinHandler),
