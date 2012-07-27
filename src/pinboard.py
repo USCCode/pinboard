@@ -4,8 +4,6 @@ Created on May 16, 2012
 www.csce242.com
 
 @author: Jose M Vidal <jmvidal@gmail.com>
-
-Homework 6
 '''
 import webapp2
 import jinja2
@@ -100,14 +98,17 @@ class MyHandler(webapp2.RequestHandler):
         template = jinja_environment.get_template(file)
         self.response.out.write(template.render(self.templateValues))
         
-    def splitId(self,idstring):
+    def getIDfmt(self,idstring):
         end = idstring[-5:]
         start = idstring[:-5]
         if end == ".json":
             return (start, "json") #a tuple: ("6", "json")
         if end == ".html":
             return (start, "html")
-        return (idstring, "html")
+        fmt = self.request.get('fmt') 
+        if fmt != 'json':
+            fmt = 'html'
+        return (idstring, fmt)
 
 class MainPageHandler(MyHandler):
     def get(self): #/ Ask user to login or show him links
@@ -120,21 +121,21 @@ class MainPageHandler(MyHandler):
         
 class PinHandler(MyHandler):
     def get(self,id):
-        self.setupUser()    
+        self.setupUser()
+        (id, returnType) = self.getIDfmt(id)    
         logging.info('id is=%s' % id)
-        fmt = self.request.get('fmt') #if not None, he wants it in json
-        logging.info('fmt=%s=' % fmt)
+        logging.info('returnType=%s' % returnType)
         if id == '': # GET /pin returns the list of pins for this user/ 
             query = Pin.all().filter('owner =', self.user) #Remember: "owner=" won't work!!!
-            if fmt == '':
-                self.templateValues['pins'] = query
-                self.templateValues['title'] = 'Your Pins'
-                self.render('pinlist.html')
-                return
-            else: #return json
+            if returnType == 'json':
                 pins = [pin.getDict() for pin in query]
                 self.response.headers["Content-Type"] = "text/json"
                 self.response.out.write(json.dumps(pins))
+                return                
+            else: #return html
+                self.templateValues['pins'] = query
+                self.templateValues['title'] = 'Your Pins'
+                self.render('pinlist.html')
                 return
         thePin = Pin.getPin(id)
         if thePin == None:
@@ -143,14 +144,20 @@ class PinHandler(MyHandler):
         if (not thePin.private) or self.user == thePin.owner:
             if self.user == thePin.owner:
                 self.templateValues['editor'] = True
-            self.templateValues['pin'] = thePin
-            self.templateValues['id'] = id
-            self.templateValues['title'] = id
-            theBoards = []
-            for p in thePin.boards:
-                theBoards.append(Board.get(p))
-            self.templateValues['boards'] = theBoards
-            self.render('pin.html')
+            if returnType == 'json':
+                self.response.headers["Content-Type"] = "text/json"
+                self.response.out.write(json.dumps(thePin.getDict()))
+                return
+            else: #return html
+                self.templateValues['pin'] = thePin
+                self.templateValues['id'] = id
+                self.templateValues['title'] = id
+                theBoards = []
+                for p in thePin.boards:
+                    theBoards.append(Board.get(p))
+                self.templateValues['boards'] = theBoards
+                self.render('pin.html')
+            
         else:
             self.redirect('/')
     
@@ -196,6 +203,7 @@ class PinHandler(MyHandler):
 class BoardHandler(MyHandler):
     def get(self,id): #/board/
         self.setupUser()
+        (id, returnType) = self.getIDfmt(id)        
         if id == '': # GET /board returns the list of pins for this user
             if self.user == None:
                 self.redirect('/')
@@ -204,8 +212,7 @@ class BoardHandler(MyHandler):
             self.templateValues['boards'] = query
             self.templateValues['title'] = 'Your Boards'
             self.render('boardlist.html')
-            return
-        (id, returnType) = self.splitId(id)
+            return        
         theBoard = Board.getBoard(id)
         if theBoard == None: 
             self.redirect('/') 
