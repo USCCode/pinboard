@@ -4,15 +4,18 @@
  */
 
 function viewPin(pin){
-	return'<div class="thumbbox">' + 
+	var result = '<div class="thumbbox">' + 
 	    '<a href="/pin/'+ pin.pinid +'">' +
 		'<img class="thumbPin" title="Pin '+ pin.pinid +'" alt="'+ pin.caption +'" src="'+
 		pin.imgUrl + '"/></a>' +
         '<span>' +
         pin.caption + 
-        '</span><br/><input style="text-align:center" onclick="removePin('+ pin.pinid+')" type="button" value="Remove"></input><br stle="clear:both"/></div>';
+        '</span><br/>'; 
+	if (isEditor)
+		result += '<input style="text-align:center" onclick="removePin('+ pin.pinid+')" type="button" value="Remove"></input>';
+	result += '<br stle="clear:both"/></div>';
+	return result;
 }
-
 
 function viewPinToAdd(pin){
 		return'<div id="addpin'+ pin.pinid + '" class="addbox"><a href="/pin/'+ pin.pinid +'">' +
@@ -262,6 +265,8 @@ var oldAllPins;
 
 $(document).ready(function(){
 	getBoard();
-	$('#privatecheckbox').on('change', sendToServer);
-	$('#boardTitle').on('click', replaceWithTextbox);
+	if (isEditor) {
+		$('#privatecheckbox').on('change', sendToServer);
+		$('#boardTitle').on('click', replaceWithTextbox);
+	};
 });

@@ -7,6 +7,7 @@
     <div class="messagebox"><div class="message">Hello</div></div>
     <div id="pins">
     </div>
+    {% if editor %}
     <div class="displaybox">
     Private:</label> <input type="checkbox" name="private" id="privatecheckbox" 
 	     {% if board.private %}checked {% endif %} /><br/>
@@ -15,8 +16,12 @@
 	  <input type="hidden" name="cmd" value="delete"/>
 	  <input type="submit" value="Delete this Board" />
 	  </form>	  
-	     
     </div>
+    <script>var isEditor = true;</script>
+    {% else %}
+    <script>var isEditor = false;</script>
+    {% endif %}
+    
     <div class="displaybox" id="pinstoadd">
     </div>
     
