@@ -28,10 +28,10 @@ function removePin(pinNumber){
 			deletePin: pinNumber},
 		success: function(data){
 			console.log('removed pin');
-		}
+		},
+		error: handleServerError
 	});
-	drawBoard();
-	drawExtrapins();
+	updateView(board,allPins);
 }
 
 function addPin(pinNumber){
@@ -44,10 +44,10 @@ function addPin(pinNumber){
 			deletePin: 'none'},
 		success: function(data){
 			console.log('added pin');
-		}
+		},
+		error: handleServerError
 	});
-	drawBoard();
-	drawExtrapins();
+	updateView(board,allPins);	
 }
 
 function movePinToBoard(pinNumber){
@@ -72,20 +72,20 @@ function removePinFromBoard(pinNumber){
 }
 
 
-function drawBoard(){
-	$('#boardTitle').text(board.title);
+function drawBoard(theBoard){
+	$('#boardTitle').text(theBoard.title);
 	$('#pins').html('');
-	if (board.private){
+	if (theBoard.private){
 		$('#privatecheckbox').attr('checked','');
 	} else {
 		$('#privatecheckbox').removeAttr('checked');
 	}
-	for (var i=0; i < board.pins.length; i++){
-		var pin = board.pins[i];
+	for (var i=0; i < theBoard.pins.length; i++){
+		var pin = theBoard.pins[i];
 		var pinHtml = viewPin(pin);
 		$('#pins').append(pinHtml);
 	}
-	if (board.pins.length == 0){
+	if (theBoard.pins.length == 0){
 		$('#pins').html('<div class="thumbbox">Board is empty.</div>');
 	}
 }
@@ -107,35 +107,55 @@ function getBoardPin(pinid){
  * Draw 'allPins' in the pins-to-add section
  * @returns
  */
-function drawExtrapins(){
+function drawExtrapins(allThePins){
 	console.log('viewextra');
 	$('#pinstoadd').html('');
-	for (var i=0; i < allPins.length; i++){
-		if (getBoardPin(allPins[i].pinid) == undefined ){
+	for (var i=0; i < allThePins.length; i++){
+		if (getBoardPin(allThePins[i].pinid) == undefined ){
 			console.log('pin=' + i);
-			var pinhtml = viewPinToAdd(allPins[i]);
+			var pinhtml = viewPinToAdd(allThePins[i]);
 			$('#pinstoadd').append(pinhtml);
 		};
 	}
 }
 
-var allPins;
-var board;
+function updateView(theBoard, allThePins){
+	drawBoard(theBoard);
+	drawExtrapins(allThePins);
+}
 
+var board;
+var oldBoard;
+var allPins;
+var oldAllPins;
+
+/**
+ * Get all the board data, and all the user's pins, from the server.
+ * Update the model.
+ */
 function getBoard(){
 	var boardid = location.pathname.split('/')[2];
 	$.ajax('/board/' + boardid + '.json', {
 		type: 'GET',
 		success: function(data){
 			board = data;
+			oldBoard = jQuery.extend(true,{},board); //make a copy
 			drawBoard(data);
+		},
+		error: function(e){
+			console.log("Could not get board data from server...");
 		}
+		
 	});
 	$.ajax('/pin/?fmt=json', {
 		type: 'GET',
 		success: function(data){
 			allPins = data;
-			drawExtrapins();
+			oldAllPins = allPins.slice(0);
+			drawExtrapins(data);
+		},
+		error: function(e){
+			console.log("Could not get pins data from server...");
 		}
 	});
 }
@@ -188,6 +208,28 @@ function replaceWithTextbox(){
 	$('#titleedit').on("keypress", keypressHandler);
 }
 
+/** Show error message */
+function displayErrorMessage(){
+	$('.message').text("Error updating Board");
+	$('.message').show();
+	setTimeout(function(){
+		$('.message').hide();
+	}, 2000);
+}
+
+/**
+ * If there is a server error we revert the model to the old one and update view.
+ * NOTE: This is NOT A complete solution. If the user makes 2 or more quick changes
+ * and there is a server error on one of them then we can end up in an inconsistent
+ * state (client and server state do not match).
+ * Solving this for the general case seems hard.
+ */
+function handleServerError(){
+	board = jQuery.extend(true,{},oldBoard);
+	allPins = oldAllPins.slice(0);
+	updateView(board,allPins);
+	displayErrorMessage();
+}
 
 $(document).ready(function(){
 	getBoard();

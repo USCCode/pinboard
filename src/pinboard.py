@@ -265,6 +265,8 @@ class BoardHandler(MyHandler):
             self.redirect('/')
     
     def post(self,id):
+#        self.error(500)
+#        return
         self.setupUser()
         title = self.request.get('title')
         command = self.request.get('cmd')
