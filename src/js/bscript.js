@@ -1,3 +1,8 @@
+/*
+ * VIEW functions
+ * 
+ */
+
 function viewPin(pin){
 	return'<div class="thumbbox">' + 
 	    '<a href="/pin/'+ pin.pinid +'">' +
@@ -18,60 +23,6 @@ function viewPinToAdd(pin){
         '</span><br/><input onclick="addPin('+ pin.pinid+')" type="button" value="Add"></input></div>';
 }
 
-function removePin(pinNumber){
-	removePinFromBoard(pinNumber);
-	$.ajax('/board/' + board.boardid, {
-		type: "POST",
-		data: {
-			title: board.title,
-			addPin: 'none',
-			deletePin: pinNumber},
-		success: function(data){
-			console.log('removed pin');
-		},
-		error: handleServerError
-	});
-	updateView(board,allPins);
-}
-
-function addPin(pinNumber){
-	movePinToBoard(pinNumber);
-	$.ajax('/board/' + board.boardid, {
-		type: "POST",
-		data: {
-			title: board.title,
-			addPin: pinNumber,
-			deletePin: 'none'},
-		success: function(data){
-			console.log('added pin');
-		},
-		error: handleServerError
-	});
-	updateView(board,allPins);	
-}
-
-function movePinToBoard(pinNumber){
-	console.log('add' + pinNumber);
-	var pin;
-	for (var i=0; i < allPins.length; i++){
-		if (allPins[i].pinid == pinNumber){
-			pin = allPins[i];
-			board.pins.push(pin);
-		}
-	}
-}
-
-function removePinFromBoard(pinNumber){
-	console.log('remove' + pinNumber);
-	var pin;
-	for (var i=0; i < board.pins.length; i++){
-		if (board.pins[i].pinid == pinNumber){
-			board.pins.splice(i,1);
-		}
-	}
-}
-
-
 function drawBoard(theBoard){
 	$('#boardTitle').text(theBoard.title);
 	$('#pins').html('');
@@ -91,47 +42,75 @@ function drawBoard(theBoard){
 }
 
 /**
- * Determine if pinid is in board, 
- * @param pinid
- * @returns the pin, or undefined if not in.
- */
-function getBoardPin(pinid){
-	for (var i=0; i < board.pins.length; i++){
-		var pin = board.pins[i];
-		if (pin.pinid == pinid) { return pin};
-	}
-	return undefined;
-}
-
-/**
  * Draw 'allPins' in the pins-to-add section
- * @returns
  */
 function drawExtrapins(allThePins){
-	console.log('viewextra');
 	$('#pinstoadd').html('');
 	for (var i=0; i < allThePins.length; i++){
 		if (getBoardPin(allThePins[i].pinid) == undefined ){
-			console.log('pin=' + i);
 			var pinhtml = viewPinToAdd(allThePins[i]);
 			$('#pinstoadd').append(pinhtml);
 		};
 	}
 }
 
+/**
+ * Update the whole view of the board and the pins-to-add.
+ * @param theBoard
+ * @param allThePins
+ */
 function updateView(theBoard, allThePins){
 	drawBoard(theBoard);
 	drawExtrapins(allThePins);
 }
 
-var board;
-var oldBoard;
-var allPins;
-var oldAllPins;
+/* 
+ * CONTROLLER functions
+ */
+
+/**
+ * Removes pinNumber from the model and update the view.
+ */
+function removePin(pinNumber){
+	removePinFromBoard(pinNumber);
+	$.ajax('/board/' + board.boardid, {
+		type: "POST",
+		data: {
+			title: board.title,
+			addPin: 'none',
+			deletePin: pinNumber},
+		success: function(data){
+			console.log('removed pin');
+		},
+		error: handleServerError
+	});
+	updateView(board,allPins);
+}
+
+/**
+ * Add pinNumber to the model and update the view.
+ * @param pinNumber
+ */
+function addPin(pinNumber){
+	movePinToBoard(pinNumber);
+	$.ajax('/board/' + board.boardid, {
+		type: "POST",
+		data: {
+			title: board.title,
+			addPin: pinNumber,
+			deletePin: 'none'},
+		success: function(data){
+			console.log('added pin');
+		},
+		error: handleServerError
+	});
+	updateView(board,allPins);	
+}
+
 
 /**
  * Get all the board data, and all the user's pins, from the server.
- * Update the model.
+ * Update the model and the view.
  */
 function getBoard(){
 	var boardid = location.pathname.split('/')[2];
@@ -230,6 +209,56 @@ function handleServerError(){
 	updateView(board,allPins);
 	displayErrorMessage();
 }
+
+/*
+ * MODEL functions 
+ */
+
+/**
+ * Determine if pinid is in board, 
+ * @param pinid
+ * @returns the pin, or undefined if not in.
+ */
+function getBoardPin(pinid){
+	for (var i=0; i < board.pins.length; i++){
+		var pin = board.pins[i];
+		if (pin.pinid == pinid) { return pin};
+	}
+	return undefined;
+}
+
+/**
+ * Add pinNumber to the board model. 
+ * @param pinNumber
+ */
+function movePinToBoard(pinNumber){
+	var pin;
+	for (var i=0; i < allPins.length; i++){
+		if (allPins[i].pinid == pinNumber){
+			pin = allPins[i];
+			board.pins.push(pin);
+		}
+	}
+}
+
+/**
+ * Remove pinNumber from the board model.
+ * @param pinNumber
+ */
+function removePinFromBoard(pinNumber){
+	var pin;
+	for (var i=0; i < board.pins.length; i++){
+		if (board.pins[i].pinid == pinNumber){
+			board.pins.splice(i,1);
+		}
+	}
+}
+
+var board;
+var oldBoard;
+var allPins;
+var oldAllPins;
+
 
 $(document).ready(function(){
 	getBoard();
