@@ -5,8 +5,7 @@ www.csce242.com
 
 @author: Jose M Vidal <jmvidal@gmail.com>
 
-TODO: when I delete a board, also delete it on all the pin.boards that have it????
-Q: when do I do the put()? in
+HW8 
 '''
 import webapp2
 import jinja2
