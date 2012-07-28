@@ -32,9 +32,13 @@ class Pin(db.Model):
     @staticmethod #just like a Java static method
     def getPin(id): 
         """Returns the pin with the given id (a String), or None if there is no such id."""
-        key = db.Key.from_path('Pin', long(id))
-        thePin = db.get(key)
-        return thePin
+        try:
+            key = db.Key.from_path('Pin', long(id))
+            thePin = db.get(key)
+            return thePin
+        except ValueError:
+            return None
+        
     
     def getDict(self):
         """Returns a dictionary representation of parts of this pin."""
@@ -80,9 +84,12 @@ class Board(db.Model):
     @staticmethod    
     def getBoard(id):
         """Returns the board with the given id (a String), or None if there is no such id."""
-        key = db.Key.from_path('Board', long(id))
-        theBoard = db.get(key)
-        return theBoard
+        try:
+            key = db.Key.from_path('Board', long(id))
+            theBoard = db.get(key)
+            return theBoard
+        except ValueError:
+            return None
 
     def getPins(self,theUser):
         """Returns this board's pins, that theUser can see."""
