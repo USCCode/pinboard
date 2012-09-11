@@ -29,10 +29,10 @@ class Pin(db.Model):
         return self.key().id()
 
     @staticmethod #just like a Java static method
-    def getPin(id): 
-        """Returns the pin with the given id (a String), or None if there is no such id."""
+    def getPin(num): 
+        """Returns the pin with the given num (a String), or None if there is no such num."""
         try:
-            key = db.Key.from_path('Pin', long(id))
+            key = db.Key.from_path('Pin', long(num))
             thePin = db.get(key)
             return thePin
         except ValueError:
@@ -81,10 +81,10 @@ class Board(db.Model):
         self.delete()
 
     @staticmethod    
-    def getBoard(id):
-        """Returns the board with the given id (a String), or None if there is no such id."""
+    def getBoard(num):
+        """Returns the board with the given num (a String), or None if there is no such num."""
         try:
-            key = db.Key.from_path('Board', long(id))
+            key = db.Key.from_path('Board', long(num))
             theBoard = db.get(key)
             return theBoard
         except ValueError:
@@ -143,12 +143,12 @@ class MainPageHandler(MyHandler):
         
         
 class PinHandler(MyHandler):
-    def get(self,id):
+    def get(self,num):
         self.setupUser()
-        (id, returnType) = self.getIDfmt(id)    
-        logging.info('id is=%s' % id)
+        (num, returnType) = self.getIDfmt(num)    
+        logging.info('id is=%s' % num)
         logging.info('returnType=%s' % returnType)
-        if id == '': # GET /pin returns the list of pins for this user/ 
+        if num == '': # GET /pin returns the list of pins for this user/ 
             query = Pin.all().filter('owner =', self.user) #Remember: "owner=" won't work!!!
             if returnType == 'json':
                 pins = [pin.getDict() for pin in query]
@@ -160,7 +160,7 @@ class PinHandler(MyHandler):
                 self.templateValues['title'] = 'Your Pins'
                 self.render('pinlist.html')
                 return
-        thePin = Pin.getPin(id)
+        thePin = Pin.getPin(num)
         if thePin == None:
             self.redirect('/') 
             return
@@ -173,8 +173,8 @@ class PinHandler(MyHandler):
                 return
             else: #return html
                 self.templateValues['pin'] = thePin
-                self.templateValues['id'] = id
-                self.templateValues['title'] = id
+                self.templateValues['id'] = num
+                self.templateValues['title'] = num
                 theBoards = []
                 for p in thePin.boards:
                     theBoards.append(Board.get(p))
@@ -184,7 +184,7 @@ class PinHandler(MyHandler):
         else:
             self.redirect('/')
     
-    def post(self,id):
+    def post(self,num):
         """If /pin/ then create a new one, if /pin/123 then update it,
         if /pin/123?cmd=delete then delete it."""
 #        self.error(500)
@@ -197,11 +197,11 @@ class PinHandler(MyHandler):
         private = True if (private == "on") else False
         xhr = self.request.get('xhr') #true if this is an xhr call 
         owner = self.user
-        if id == '': #new pin, create it
+        if num == '': #new pin, create it
             thePin = Pin(imgUrl = imgUrl, caption = caption, owner = owner, private = private)
             thePin.put()
         else:
-            thePin = Pin.getPin(id)
+            thePin = Pin.getPin(num)
             if thePin == None:
                 self.redirect('/')  
                 return            
@@ -224,10 +224,10 @@ class PinHandler(MyHandler):
             self.redirect(newUrl)
 
 class BoardHandler(MyHandler):
-    def get(self,id): #/board/
+    def get(self,num): #/board/
         self.setupUser()
-        (id, returnType) = self.getIDfmt(id)        
-        if id == '': # GET /board returns the list of pins for this user
+        (num, returnType) = self.getIDfmt(num)        
+        if num == '': # GET /board returns the list of pins for this user
             if self.user == None:
                 self.redirect('/')
                 return
@@ -236,14 +236,14 @@ class BoardHandler(MyHandler):
             self.templateValues['title'] = 'Your Boards'
             self.render('boardlist.html')
             return        
-        theBoard = Board.getBoard(id)
+        theBoard = Board.getBoard(num)
         if theBoard == None: 
             self.redirect('/') 
             return        
         if (not theBoard.private) or self.user == theBoard.owner:
             self.templateValues['board'] = theBoard
-            self.templateValues['id'] = id
-            self.templateValues['title'] = id
+            self.templateValues['id'] = num
+            self.templateValues['title'] = num
             if self.user == theBoard.owner:
                 self.templateValues['editor'] = True
             myPins = Pin.all().filter('owner =', self.user)            
@@ -263,7 +263,7 @@ class BoardHandler(MyHandler):
         else:
             self.redirect('/')
     
-    def post(self,id):
+    def post(self,num):
 #        self.error(500)
 #        return
         self.setupUser()
@@ -272,7 +272,7 @@ class BoardHandler(MyHandler):
         private = self.request.get('private')
         private = True if (private == "true") else False
         owner = self.user
-        if id == '': #new board, create it
+        if num == '': #new board, create it
             theBoard = Board(title = title, owner = owner, private = private)
             theBoard.put()
             key = theBoard.key()
@@ -280,7 +280,7 @@ class BoardHandler(MyHandler):
             self.redirect(newUrl)
             return
         else: #update existing board
-            theBoard = Board.getBoard(id)
+            theBoard = Board.getBoard(num)
             if theBoard == None:
                 self.redirect('/')  
                 return            
