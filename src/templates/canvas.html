@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block header %}{{ header }}{% endblock %}
+{% block content %}
+
+    <h1 id="boardTitle"></h1>
+    
+    <div class="canvasBox">
+    <canvas id="board" width="854" height="480"></canvas>
+    </div>
+    
+
+    <script type="text/javascript" src="/js/canvaspage.js"></script>
+
+{% endblock %}

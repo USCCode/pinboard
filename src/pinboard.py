@@ -312,7 +312,31 @@ class BoardHandler(MyHandler):
                 theBoard.put()
 
 
+class CanvasHandler(MyHandler):
+    def get(self,num): #/canvas/
+        self.setupUser()
+        (num, returnType) = self.getIDfmt(num)        
+        if num == '': # GET /canvas/ is ignored
+            self.redirect('/')
+            return
+        theBoard = Board.getBoard(num)
+        if theBoard == None: 
+            self.redirect('/') 
+            return        
+        if (not theBoard.private) or self.user == theBoard.owner:
+            self.templateValues['board'] = theBoard
+            self.templateValues['id'] = num
+            self.templateValues['title'] = num
+            if self.user == theBoard.owner:
+                self.templateValues['editor'] = True
+
+            self.render('canvas.html')
+        else:
+            self.redirect('/')
+
+
 app = webapp2.WSGIApplication([('/pin/(.*)', PinHandler), ('/pin()', PinHandler),
                                ('/board/(.*)', BoardHandler), ('/board()', BoardHandler), 
+                               ('/canvas/(.*)', CanvasHandler), 
                                ('/', MainPageHandler)],
                               debug=True)

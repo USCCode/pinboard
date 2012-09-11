@@ -144,3 +144,16 @@ input {
 	font-size: 100%; 
 	font-family: serif;
 }
+
+canvas {
+	border: 1px solid black;
+	width: 854px;
+	height: 480px;
+}
+
+.canvasBox{
+	width: 854px;
+	height: 560px;
+	margin-left: auto;
+	margin-right: auto;
+}
