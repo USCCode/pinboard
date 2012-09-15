@@ -7,7 +7,7 @@
  */
 function drawAt(x,y){
 	return function(){
-		context.drawImage(this, x, y, 100, 100);
+		context.drawImage(this, x, y, 200, 200);
 	}
 };
 
@@ -58,7 +58,7 @@ function getPosInCanvas(evt) {
  */
 var context;
 var canvas;
-var chosenPin = 0;
+var chosenPin = null;
 
 /**
  * Get all the board data, and all the user's pins, from the server.
@@ -71,8 +71,8 @@ function getBoard(){
 		success: function(data){
 			boardModel = data;
 			for (var i=0; i < boardModel.pins.length; i++){
-				boardModel.pins[i].x = Math.random()*(canvas.width-100);
-				boardModel.pins[i].y = Math.random()*(canvas.height-100);
+				boardModel.pins[i].x = Math.random()*(canvas.width-200);
+				boardModel.pins[i].y = Math.random()*(canvas.height-200);
 			}
 			drawBoard(boardModel);
 		},
@@ -83,18 +83,48 @@ function getBoard(){
 }
 
 
+function movePin(chosenPin,x,y){
+	context.clearRect(0,0,canvas.width,canvas.height);
+	boardModel.pins[chosenPin].x = x;
+	boardModel.pins[chosenPin].y = y;
+	drawBoard(boardModel);		
+}
 
 function mouseMoveHandler(evt){
-	var xy = getPosInCanvas(evt);
+	if (chosenPin == null) return;
+	var xy = getPosInCanvas(evt);	
 	console.log("Mouse moved" + xy.y);
-	context.clearRect(0,0,canvas.width,canvas.height);
-	boardModel.pins[chosenPin].x = xy.x;
-	boardModel.pins[chosenPin].y = xy.y;
-	drawBoard(boardModel);	
+	movePin(chosenPin,xy.x,xy.y);
+}
+
+/**
+ * Returns the pin index number of the pin that overlaps x,y (canvas coordinates)
+ * or null if none.
+ * @param x
+ * @param y
+ */
+function getChosenPin(x,y){
+	for (var i=0; i < boardModel.pins.length; i++){
+		var thePin = boardModel.pins[i];
+		if ( thePin.x < x && x < thePin.x + 200 &&
+				thePin.y < y && y < thePin.y + 200){
+			return i;
+		} 
+	}
+	return null;
 }
 
 function mouseClickHandler(evt){
 	console.log("Click");
+	var xy = getPosInCanvas(evt);
+	if (chosenPin) {
+		chosenPin = null;
+		
+	} else {
+		chosenPin = getChosenPin(xy.x, xy.y);
+		if (chosenPin != null)
+			movePin(chosenPin,xy.x,xy.y);
+	};
 }
 
 $(document).ready(function(){
