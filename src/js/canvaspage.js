@@ -1,3 +1,6 @@
+var imageWidth = 200;
+var imageHeight = 200;
+
 /**
  * Returns a function that when called will draw 'this' Image on context at x=i*100.
  * Explanation: This function captures i in a closure. So if i changes later
@@ -7,7 +10,7 @@
  */
 function drawAt(x,y){
 	return function(){
-		context.drawImage(this, x, y, 200, 200);
+		context.drawImage(this, x, y, imageWidth, imageHeight);
 	}
 };
 
@@ -16,27 +19,31 @@ function drawAt(x,y){
  */
 var boardModel = {};
 
-function drawPin(theBoard,pinNumber){
-	var pin = theBoard.pins[pinNumber];
-	var img = new Image();
-	img.onload = drawAt(Math.floor(pin.x), Math.floor(pin.y)); 
-	img.src = pin.imgUrl;
-}
-
 /**
- * Add all the board's pin to the canvas object;
+ * Update the pins by re-setting their location.
  * @param theBoard
  */
 function drawBoard(theBoard){
-	console.log("drawBoard");
-	$('#boardTitle').text(theBoard.title);
 	context.clearRect(0,0,canvas.width,canvas.height);
 	for (var i=0; i < theBoard.pins.length; i++){
-		drawPin(theBoard,i);
-//		var pin = theBoard.pins[i];
-//		var img = new Image();
-//		img.onload = drawAt(pin.x, pin.y); 
-//		img.src = pin.imgUrl;
+		var pin = theBoard.pins[i];
+		pin.img.onload = drawAt(Math.floor(pin.x), Math.floor(pin.y)); 
+		pin.img.src = pin.imgUrl; //we need to re-set this otherwise it will not redraw.		
+	}
+}
+
+/**
+ * Create all the Image objects, put them on theBoard, and draw them. Draw the Board title.
+ * @param theBoard
+ */
+function createImages(theBoard){
+	$('#boardTitle').text(theBoard.title);
+	for (var i=0; i < theBoard.pins.length; i++){
+		var pin = theBoard.pins[i];
+		var img = new Image(); 
+		img.onload = drawAt(Math.floor(pin.x), Math.floor(pin.y)); 
+		img.src = pin.imgUrl;
+		pin.img = img;
 	}
 }
 
@@ -71,10 +78,10 @@ function getBoard(){
 		success: function(data){
 			boardModel = data;
 			for (var i=0; i < boardModel.pins.length; i++){
-				boardModel.pins[i].x = Math.random()*(canvas.width-200);
-				boardModel.pins[i].y = Math.random()*(canvas.height-200);
+				boardModel.pins[i].x = Math.random()*(canvas.width-imageWidth);
+				boardModel.pins[i].y = Math.random()*(canvas.height-imageHeight);
 			}
-			drawBoard(boardModel);
+			createImages(boardModel);
 		},
 		error: function(e){
 			console.log("Could not get board data from server...");
@@ -84,7 +91,6 @@ function getBoard(){
 
 
 function movePin(chosenPin,x,y){
-	context.clearRect(0,0,canvas.width,canvas.height);
 	boardModel.pins[chosenPin].x = x;
 	boardModel.pins[chosenPin].y = y;
 	drawBoard(boardModel);		
@@ -93,7 +99,6 @@ function movePin(chosenPin,x,y){
 function mouseMoveHandler(evt){
 	if (chosenPin == null) return;
 	var xy = getPosInCanvas(evt);	
-	console.log("Mouse moved" + xy.y);
 	movePin(chosenPin,xy.x,xy.y);
 }
 
@@ -106,8 +111,8 @@ function mouseMoveHandler(evt){
 function getChosenPin(x,y){
 	for (var i=0; i < boardModel.pins.length; i++){
 		var thePin = boardModel.pins[i];
-		if ( thePin.x < x && x < thePin.x + 200 &&
-				thePin.y < y && y < thePin.y + 200){
+		if ( thePin.x < x && x < thePin.x + imageWidth &&
+				thePin.y < y && y < thePin.y + imageHeight){
 			return i;
 		} 
 	}
@@ -115,7 +120,6 @@ function getChosenPin(x,y){
 }
 
 function mouseClickHandler(evt){
-	console.log("Click");
 	var xy = getPosInCanvas(evt);
 	if (chosenPin) {
 		chosenPin = null;
@@ -128,7 +132,6 @@ function mouseClickHandler(evt){
 }
 
 $(document).ready(function(){
-	console.log("Ready to rock...");
 	$('#board').on('mousemove',mouseMoveHandler);
 	$('#board').on('click',mouseClickHandler);
 	canvas = document.getElementById('board');
