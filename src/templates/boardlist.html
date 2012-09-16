@@ -6,11 +6,11 @@
 
     <ul>
     {% for board in boards %}
-    <li><a href="/board/{{ board.id() }}">{{ board.title }}</a></li>
+    <li><a href="/board/{{ board.id() }}">{{ board.title }}</a> (<a href="/canvas/{{ board.id() }}">canvas</a>)</li>
     {% endfor %}
     </ul>    
       
-      Enter new board:
+      <br/>Enter new board:
 	  <form method="post" action="/board/">
 	  <label for="title">Title:</label> <input type="text" name="title"/><br/>
 	  <label for="private">Private:</label> <input type="checkbox" name="private"/><br/>
