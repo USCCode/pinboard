@@ -370,7 +370,6 @@ class CanvasHandler(MyHandler):
             self.templateValues['title'] = num
             if self.user == theBoard.owner:
                 self.templateValues['editor'] = True
-
             self.render('canvas.html')
         else:
             self.redirect('/')

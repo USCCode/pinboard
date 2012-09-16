@@ -183,8 +183,10 @@ function mouseClickHandler(evt){
 }
 
 $(document).ready(function(){
-	$('#board').on('mousemove',mouseMoveHandler);
-	$('#board').on('click',mouseClickHandler);
+	if (isEditor) {
+		$('#board').on('mousemove',mouseMoveHandler);
+		$('#board').on('click',mouseClickHandler);
+	};
 	canvas = document.getElementById('board');
 	context = canvas.getContext('2d');	
 	getBoard();

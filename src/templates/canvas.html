@@ -8,8 +8,11 @@
     <div class="canvasBox">
     <canvas id="board" width="854" height="480"></canvas>
     </div>
-    
-
+    {% if editor %}
+    <script>var isEditor = true;</script>
+    {% else %}
+    <script>var isEditor = false;</script>
+    {% endif %}
     <script type="text/javascript" src="/js/canvaspage.js"></script>
 
 {% endblock %}
