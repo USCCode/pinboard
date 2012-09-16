@@ -55,6 +55,8 @@ class Board(db.Model):
     owner = db.UserProperty(required=True)
     private = db.BooleanProperty(default=False)
     pins = db.ListProperty(db.Key,default=[]) #references to the pins in this pinboard, some might not exist anymore
+    pinsx = db.ListProperty(int)
+    pinsy = db.ListProperty(int)
     
     def id(self):
         return self.key().id()
@@ -65,12 +67,17 @@ class Board(db.Model):
         if (not pin.key() in self.pins):
             self.pins.append(pin.key())
             pin.boards.append(self.key())
+            self.pinsx.append(0)
+            self.pinsy.append(0)
     
     def deletePin(self,pin):
         """Deletes pin from this board's pins,and this board from pin's boards list."""
         if (pin.key() in self.pins):
             self.pins.remove(pin.key())
+            self.idx = pin.boards.index(self.key())
             pin.boards.remove(self.key())
+            del pin.boards.pinsx[self.idx]
+            del pin.boards.pinsy[self.idx]
             
     def remove(self):
         """Deletes this board, and removes it from all the pins that have it."""
@@ -79,6 +86,16 @@ class Board(db.Model):
             thepin.boards.remove(self.key())
             thepin.put()
         self.delete()
+        
+    def updatePin(self,pin,x,y):
+        """Updates the x,y coordinates of pin"""
+        try:
+            i = self.pins.index(pin.key())
+            self.pinsx[i] = int(x)
+            self.pinsy[i] = int(y)
+            return True            
+        except ValueError:
+            return False
 
     @staticmethod    
     def getBoard(num):
@@ -102,7 +119,23 @@ class Board(db.Model):
     def getDict(self, theUser):
         """Returns a dictionary representation of parts of this board."""
         b = {'title': self.title, 'private': self.private, 'boardid': self.id()}
-        b['pins'] = [pin.getDict() for pin in  self.getPins(theUser)]
+        self.i = 0        
+        thePins = self.getPins(theUser)
+        if (len(self.pinsx) < len(thePins)): #set them all to 0 if not there, so we can be backward-compatible
+            self.pinsx = [0 for _ in range(len(thePins))]
+        if (len(self.pinsy) < len(thePins)):
+            self.pinsy = [0 for _ in range(len(thePins))]
+        logging.error(thePins)            
+        logging.error(self.pinsx)            
+        logging.error(self.pinsy)
+        newPins = []            
+        for (pin,x,y) in zip(thePins,self.pinsx,self.pinsy):
+            jpin = pin.getDict()
+            logging.error('Hi there')
+            jpin['x'] = x
+            jpin['y'] = y
+            newPins.append(jpin)
+        b['pins'] = newPins
         return b
     
 class MyHandler(webapp2.RequestHandler):
@@ -116,9 +149,9 @@ class MyHandler(webapp2.RequestHandler):
         else:
             self.templateValues['login'] = users.create_login_url('/')
             
-    def render(self, file):
+    def render(self, afile):
         "Render the given file"
-        template = jinja_environment.get_template(file)
+        template = jinja_environment.get_template(afile)
         self.response.out.write(template.render(self.templateValues))
         
     def getIDfmt(self,idstring):
@@ -307,6 +340,14 @@ class BoardHandler(MyHandler):
                     if thePin != None and thePin.owner == self.user and (thePin.key() in theBoard.pins):
                         theBoard.deletePin(thePin)
                         thePin.put()
+                pinToEdit = self.request.get('editPin')
+                if pinToEdit != None and pinToEdit != '' and pinToEdit != 'none': #change the pin's x,y in this board
+                    logging.info('editing pin')  
+                    thePin = Pin.getPin(pinToEdit) 
+                    if thePin != None and thePin.owner == self.user and (thePin.key() in theBoard.pins):
+                        x = self.request.get('x')
+                        y = self.request.get('y')
+                        theBoard.updatePin(thePin,x,y)
                 theBoard.title = title
                 theBoard.private = private
                 theBoard.put()
