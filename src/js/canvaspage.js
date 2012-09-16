@@ -1,5 +1,27 @@
+/**
+ * The width and height that we will set all the images on the canvas.
+ * TODO: We should store a width and height for each image on the server and use those.
+ */
 var imageWidth = 200;
 var imageHeight = 200;
+
+/**
+ * Board model, in JSON format.
+ */
+var board = {};
+
+/***
+ * Global vars that hold the canvas, 2D context, and the currently chosen pin.
+ */
+var context;
+var canvas;
+/**
+ * If chosenPin is not null then it is the index (within board.pins) of the pin the 
+ * user is currently moving.
+ */
+var chosenPin = null;
+
+
 
 /**
  * Returns a function that when called will draw 'this' Image on context at x=i*100.
@@ -14,10 +36,7 @@ function drawAt(x,y){
 	}
 };
 
-/**
- * Board model, in JSON format.
- */
-var board = {};
+
 
 /**
  * Update the pins by re-setting their location.
@@ -29,7 +48,6 @@ function drawBoard(theBoard){
 		var pin = theBoard.pins[i];
 		pin.img.onload = drawAt(pin.x, pin.y);
 		pin.img.src = pin.imgUrl; //we need to re-set this otherwise it will not redraw.
-
 	}
 }
 
@@ -48,25 +66,23 @@ function createImages(theBoard){
 	}
 }
 
+/**
+ * Given a mouse event evt, return the x,y coordinates of the mouse relative to the canvas object. 
+ * @param evt
+ * @returns 
+ */
 function getPosInCanvas(evt) {
 	var rect = canvas.getBoundingClientRect();
     var doc = document.documentElement;
     // return relative mouse position
-    var mouseX = evt.clientX - rect.left - doc.scrollLeft;
-    var mouseY = evt.clientY - rect.top - doc.scrollTop;
+    var mx = evt.clientX - rect.left - doc.scrollLeft;
+    var my = evt.clientY - rect.top - doc.scrollTop;
     return {
-      x: mouseX,
-      y: mouseY
+      x: mx,
+      y: my
     };
 }
 
-
-/***
- * Global var to hold the 2D context.
- */
-var context;
-var canvas;
-var chosenPin = null;
 
 /**
  * Get all the board data, and all the user's pins, from the server.
@@ -86,17 +102,16 @@ function getBoard(){
 	});
 }
 
-
+/**
+ * Change the chosenPin's x,y in the model, then redraw the board.
+ * @param chosenPin
+ * @param x
+ * @param y
+ */
 function movePin(chosenPin,x,y){
 	board.pins[chosenPin].x = Math.floor(x);
 	board.pins[chosenPin].y = Math.floor(y);
 	drawBoard(board);		
-}
-
-function mouseMoveHandler(evt){
-	if (chosenPin == null) return;
-	var xy = getPosInCanvas(evt);	
-	movePin(chosenPin,xy.x,xy.y);
 }
 
 /**
@@ -116,6 +131,11 @@ function getChosenPin(x,y){
 	return null;
 }
 
+/**
+ * Send the current board to the server in an 'editPin' action, with value of chosenPin.
+ * Thus, only the chosenPin's x,y are updated.
+ * TODO: handle error.
+ */
 function sendToServer(){
 	$.ajax('/board/' + board.boardid, {
 		type: "POST",
@@ -127,9 +147,27 @@ function sendToServer(){
 			private: board.private },
 		success: function(data){
 			console.log('updated server');
-		}});
+		},
+		error: function(data){
+			console.leg('ERROR sending position to server');
+		}
+	});
 }
 
+/**
+ * Handler for when the mouse moves inside the canvas.
+ * @param evt
+ */
+function mouseMoveHandler(evt){
+	if (chosenPin == null) return;
+	var xy = getPosInCanvas(evt);	
+	movePin(chosenPin,xy.x,xy.y);
+}
+
+/**
+ * Handler for when the mouse is clicked on inside the canvas.
+ * @param evt
+ */
 function mouseClickHandler(evt){
 	console.log("click");
 	var xy = getPosInCanvas(evt);
