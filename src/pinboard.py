@@ -76,8 +76,8 @@ class Board(db.Model):
             self.pins.remove(pin.key())
             self.idx = pin.boards.index(self.key())
             pin.boards.remove(self.key())
-            del pin.boards.pinsx[self.idx]
-            del pin.boards.pinsy[self.idx]
+            del self.pinsx[self.idx]
+            del self.pinsy[self.idx]
             
     def remove(self):
         """Deletes this board, and removes it from all the pins that have it."""
