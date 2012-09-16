@@ -21,23 +21,6 @@ var canvas;
  */
 var chosenPin = null;
 
-
-
-/**
- * Returns a function that when called will draw 'this' Image on context at x=i*100.
- * Explanation: This function captures i in a closure. So if i changes later
- *  it is not a problem, because this i is now local.
- * @param i
- * @returns {Function}
- */
-function drawAt(x,y){
-	return function(){
-		context.drawImage(this, x, y, imageWidth, imageHeight);
-	}
-};
-
-
-
 /**
  * Update the pins by re-setting their location.
  * @param theBoard
@@ -46,13 +29,18 @@ function drawBoard(theBoard){
 	context.clearRect(0,0,canvas.width,canvas.height);
 	for (var i=0; i < theBoard.pins.length; i++){
 		var pin = theBoard.pins[i];
-		pin.img.onload = drawAt(pin.x, pin.y);
-		pin.img.src = pin.imgUrl; //we need to re-set this otherwise it will not redraw.
+		context.drawImage(pin.img,pin.x,pin.y,imageWidth,imageHeight);
 	}
 }
 
 /**
+ * Counts how many images have been loaded from the server.
+ */
+var numImagesLoaded = 0;
+
+/**
  * Create all the Image objects, put them on theBoard, and draw them. Draw the Board title.
+ * Should only get called once, when we load the page.
  * @param theBoard
  */
 function createImages(theBoard){
@@ -60,7 +48,11 @@ function createImages(theBoard){
 	for (var i=0; i < theBoard.pins.length; i++){
 		var pin = theBoard.pins[i];
 		var img = new Image(); 
-		img.onload = drawAt(Math.floor(pin.x), Math.floor(pin.y)); 
+		img.onload = function(){ 
+			if (++numImagesLoaded >= theBoard.pins.length){
+				console.log("Drawing...");
+				drawBoard(board)};
+		};
 		img.src = pin.imgUrl;
 		pin.img = img;
 	}
