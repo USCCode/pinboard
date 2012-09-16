@@ -169,7 +169,6 @@ function mouseMoveHandler(evt){
  * @param evt
  */
 function mouseClickHandler(evt){
-	console.log("click");
 	var xy = getPosInCanvas(evt);
 	if (chosenPin!= null) {
 		sendToServer();
