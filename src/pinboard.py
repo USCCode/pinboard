@@ -16,6 +16,7 @@ from google.appengine.ext import db
 import json
 import urllib
 from google.appengine.api import urlfetch
+from google.appengine.api import images
 
 jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__) + "/templates"))
 
@@ -27,6 +28,8 @@ class Pin(db.Model):
     private = db.BooleanProperty(default=False)
     boards = db.ListProperty(db.Key,default=[]) #references to the boards this pin is in, some might not exist anymore
     img = db.BlobProperty(default=None)
+    width = db.IntegerProperty()
+    height = db.IntegerProperty()
 
     def id(self):
         return self.key().id()
@@ -42,7 +45,8 @@ class Pin(db.Model):
         
     def getDict(self):
         """Returns a dictionary representation of parts of this pin."""
-        return {'imgUrl': self.url(), 'pinid': self.id(), 'caption': self.caption, 'private': self.private}
+        return {'imgUrl': self.url(), 'pinid': self.id(), 'caption': self.caption, 'private': self.private,
+                'width': self.width, 'height': self.height}
     
     def remove(self):
         for b in self.boards:
@@ -272,6 +276,9 @@ class PinHandler(MyHandler):
                     result = rpc.get_result() #this is a blocking call
                     if result.status_code == 200:
                         thePin.img = result.content
+                        img = images.Image(thePin.img)
+                        thePin.width = img.width
+                        thePin.height = img.height
                         thePin.put()
                 except urlfetch.DownloadError:
                     logging.error('Could not download')

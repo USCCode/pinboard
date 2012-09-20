@@ -21,6 +21,20 @@ var canvas;
  */
 var chosenPin = null;
 
+
+function scaleImage(w,h){
+	var nw,nh;
+	if (Math.max(w,h) == w) {
+		nw = imageWidth;
+		nh = Math.floor((nw * h) / w);
+	}
+	else {
+		nh = imageHeight;
+		nw = Math.floor((nh * w) / h);		
+	}
+	return [nw,nh];
+}
+
 /**
  * Update the pins by re-setting their location.
  * @param theBoard
@@ -29,7 +43,12 @@ function drawBoard(theBoard){
 	context.clearRect(0,0,canvas.width,canvas.height);
 	for (var i=0; i < theBoard.pins.length; i++){
 		var pin = theBoard.pins[i];
-		context.drawImage(pin.img,pin.x,pin.y,imageWidth,imageHeight);
+		var w = pin.width ? pin.width : imageWidth;
+		var h = pin.height ? pin.height : imageHeight;
+		var d = scaleImage(w,h);
+		pin.width = d[0];
+		pin.height = d[1];
+		context.drawImage(pin.img,pin.x,pin.y,pin.width,pin.height);
 	}
 }
 
@@ -115,8 +134,8 @@ function movePin(chosenPin,x,y){
 function getChosenPin(x,y){
 	for (var i=0; i < board.pins.length; i++){
 		var thePin = board.pins[i];
-		if ( thePin.x < x && x < thePin.x + imageWidth &&
-				thePin.y < y && y < thePin.y + imageHeight){
+		if ( thePin.x < x && x < thePin.x + thePin.width &&
+				thePin.y < y && y < thePin.y + thePin.height){
 			return i;
 		} 
 	}
