@@ -5,7 +5,7 @@
     <h1>Pin {{ title }}</h1>
     {% if pin.imgUrl %}
     <div class="displaybox">
-    <img id="pinimg" pinid="{{ id }}" class="displayPin" alt="{{ pin.caption }}" src="{{ pin.imgUrl }}"/>
+    <img id="pinimg" pinid="{{ id }}" class="displayPin" alt="{{ pin.caption }}" src="{{ pin.url() }}"/>
     <div href="#" class="displayCaption" id="caption">
     {{ pin.caption }}
     </div>

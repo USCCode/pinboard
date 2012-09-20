@@ -41,10 +41,9 @@ class Pin(db.Model):
         except ValueError:
             return None
         
-    
     def getDict(self):
         """Returns a dictionary representation of parts of this pin."""
-        return {'imgUrl': self.imgUrl, 'pinid': self.id(), 'caption': self.caption, 'private': self.private}
+        return {'imgUrl': self.url(), 'pinid': self.id(), 'caption': self.caption, 'private': self.private}
     
     def remove(self):
         for b in self.boards:
@@ -52,6 +51,13 @@ class Pin(db.Model):
             theBoard.pins.remove(self.key())
             theBoard.put()
         self.delete()
+        
+    def url(self):
+        """If the image has been stored in our dbase then return the relative URL to it, otherwise
+        return the original URL"""
+        if self.img:
+            return '/pin/%d.jpg' % self.id()
+        return self.imgUrl
     
 class Board(db.Model):
     title = db.StringProperty(required=True)
@@ -134,7 +140,6 @@ class Board(db.Model):
         newPins = []            
         for (pin,x,y) in zip(thePins,self.pinsx,self.pinsy):
             jpin = pin.getDict()
-            logging.error('Hi there')
             jpin['x'] = x
             jpin['y'] = y
             newPins.append(jpin)
@@ -184,7 +189,6 @@ class PinHandler(MyHandler):
         self.setupUser()
         (num, returnType) = self.getIDfmt(num)    
         logging.info('id is=%s' % num)
-        logging.info('returnType=%s' % returnType)
         if num == '': # GET /pin returns the list of pins for this user/ 
             query = Pin.all().filter('owner =', self.user) #Remember: "owner=" won't work!!!
             if returnType == 'json':
@@ -238,12 +242,11 @@ class PinHandler(MyHandler):
         private = True if (private == "on") else False
         xhr = self.request.get('xhr') #true if this is an xhr call 
         owner = self.user
+        rpc = None
         if num == '': #new pin, create it
             thePin = Pin(imgUrl = imgUrl, caption = caption, owner = owner, private = private)
-            logging.info('Fetching image')
-            result = urlfetch.fetch(imgUrl)
-            logging.info('Done')
-            thePin.img = result.content
+            rpc = urlfetch.create_rpc()
+            urlfetch.make_fetch_call(rpc, imgUrl) #asynch call
             thePin.put()
         else:
             thePin = Pin.getPin(num)
@@ -265,8 +268,16 @@ class PinHandler(MyHandler):
         if not xhr:
             key = thePin.key()
             newUrl = '/pin/%s' % key.id()
-            logging.info('Going to ' + newUrl)
-            self.redirect(newUrl)
+            self.redirect(newUrl) #first, tell the browser to go to the new page
+            if rpc:
+                try:
+                    result = rpc.get_result() #this is a blocking call
+                    if result.status_code == 200:
+                        thePin.img = result.content
+                        thePin.put()
+                except urlfetch.DownloadError:
+                    logging.error('Could not download')
+                    #TODO: have some way for the app to try this download again         
 
 class BoardHandler(MyHandler):
     def get(self,num): #/board/
@@ -338,9 +349,7 @@ class BoardHandler(MyHandler):
                 return
             else: 
                 pinToAdd = self.request.get('addPin')
-                logging.info('pintoadd=%s=' % pinToAdd)
                 if pinToAdd != None and pinToAdd != '' and pinToAdd != 'none':
-                    logging.info('adding pin') 
                     thePin = Pin.getPin(pinToAdd) #only add pin if it exists and its mine and its not already in.
                     if thePin != None and thePin.owner == self.user and not (thePin.key() in theBoard.pins):
                         theBoard.addPin(thePin)

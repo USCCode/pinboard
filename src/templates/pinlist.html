@@ -7,7 +7,7 @@
     {% for pin in pins %}
     <div class="thumbbox">
     <a href="/pin/{{ pin.id() }}">
-    <img class="thumbPin" title="click to edit this pin" alt="{{ pin.caption }}" src="{{ pin.imgUrl }}"/></a>
+    <img class="thumbPin" title="click to edit this pin" alt="{{ pin.caption }}" src="{{ pin.url() }}"/></a>
     Added on {{ pin.date.strftime('%B %d, %Y at %H:%M') }}<br/>
     <span class="displayCaption" id="caption">
     {{ pin.caption }}
