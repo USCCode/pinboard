@@ -35,8 +35,7 @@ class Pin(db.Model):
     def getPin(num): 
         """Returns the pin with the given num (a String), or None if there is no such num."""
         try:
-            key = db.Key.from_path('Pin', long(num))
-            thePin = db.get(key)
+            thePin = Pin.get_by_id(long(num))
             return thePin
         except ValueError:
             return None
@@ -110,8 +109,7 @@ class Board(db.Model):
     def getBoard(num):
         """Returns the board with the given num (a String), or None if there is no such num."""
         try:
-            key = db.Key.from_path('Board', long(num))
-            theBoard = db.get(key)
+            theBoard = Board.get_by_id(long(num))
             return theBoard
         except ValueError:
             return None
