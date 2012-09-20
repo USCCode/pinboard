@@ -14,6 +14,8 @@ import logging #for debugging.
 from google.appengine.api import users
 from google.appengine.ext import db
 import json
+import urllib
+from google.appengine.api import urlfetch
 
 jinja_environment = jinja2.Environment(loader=jinja2.FileSystemLoader(os.path.dirname(__file__) + "/templates"))
 
@@ -24,6 +26,7 @@ class Pin(db.Model):
     owner = db.UserProperty(required=True)
     private = db.BooleanProperty(default=False)
     boards = db.ListProperty(db.Key,default=[]) #references to the boards this pin is in, some might not exist anymore
+    img = db.BlobProperty(default=None)
 
     def id(self):
         return self.key().id()
@@ -155,12 +158,13 @@ class MyHandler(webapp2.RequestHandler):
         self.response.out.write(template.render(self.templateValues))
         
     def getIDfmt(self,idstring):
-        end = idstring[-5:]
-        start = idstring[:-5]
-        if end == ".json":
-            return (start, "json") #a tuple: ("6", "json")
-        if end == ".html":
-            return (start, "html")
+        parts = idstring.split('.')
+        end = parts[-1]
+        start = '.'.join(parts[:-1])
+        if end == "json" or end == "html" or end == "jpg":
+            return (start, end) 
+        if end == 'jpeg': #I say jpg,  you say jpeg
+            return (start, "jpg")        
         fmt = self.request.get('fmt') 
         if fmt != 'json':
             fmt = 'html'
@@ -204,6 +208,10 @@ class PinHandler(MyHandler):
                 self.response.headers["Content-Type"] = "text/json"
                 self.response.out.write(json.dumps(thePin.getDict()))
                 return
+            elif returnType == 'jpg':
+                self.response.headers['Content-Type'] = 'image/jpeg'
+                self.response.out.write(thePin.img)
+                return
             else: #return html
                 self.templateValues['pin'] = thePin
                 self.templateValues['id'] = num
@@ -232,6 +240,10 @@ class PinHandler(MyHandler):
         owner = self.user
         if num == '': #new pin, create it
             thePin = Pin(imgUrl = imgUrl, caption = caption, owner = owner, private = private)
+            logging.info('Fetching image')
+            result = urlfetch.fetch(imgUrl)
+            logging.info('Done')
+            thePin.img = result.content
             thePin.put()
         else:
             thePin = Pin.getPin(num)
