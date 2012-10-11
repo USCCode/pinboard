@@ -80,17 +80,12 @@ function createImages(theBoard){
 /**
  * Given a mouse event evt, return the x,y coordinates of the mouse relative to the canvas object. 
  * @param evt
- * @returns 
+ * @returns {x: xcor, y: ycor}
  */
 function getPosInCanvas(evt) {
-	var rect = canvas.getBoundingClientRect();
-    var doc = document.documentElement;
-    // return relative mouse position
-    var mx = evt.clientX - rect.left - doc.scrollLeft;
-    var my = evt.clientY - rect.top - doc.scrollTop;
     return {
-      x: mx,
-      y: my
+      x: evt.offsetX,
+      y: evt.offsetY
     };
 }
 
