@@ -187,6 +187,30 @@ function mouseClickHandler(evt){
 	};
 }
 
+/**
+ * Draw a circle at x,y
+ * @param x
+ * @param y
+ */
+function drawMarker(x,y){
+	context.beginPath();
+	context.fillStyle = '#888888';
+	context.arc(x, y, 10, 0, Math.PI * 2);
+	context.fill();
+}
+
+/**
+ * Highlight pin p in canvas by drawing 4 circles on its corners.
+ * @param p the # of the pin
+ */
+function highlightPin(p){
+	var pin = board.pins[p];
+	drawMarker(pin.x,pin.y);
+	drawMarker(pin.x+pin.width,pin.y);
+	drawMarker(pin.x+pin.width,pin.y+pin.height);
+	drawMarker(pin.x,pin.y+pin.height);
+}
+
 $(document).ready(function(){
 	if (isEditor) {
 		$('#board').on('mousemove',mouseMoveHandler);
