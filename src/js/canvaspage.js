@@ -222,15 +222,18 @@ function handleMousedown(e){
 	console.log('mousedown');
 	var p = getPosInCanvas(e);
 	chosenPin = getChosenPin(p);
-	var pinPos = getPinPosition(chosenPin);
-	delta = pinPos.minus(p);
-	console.log(delta);
-	highlightPin(chosenPin);
+	console.log('chosenPin=');
+	console.log(chosenPin);
+	if (chosenPin != null) {
+		var pinPos = getPinPosition(chosenPin);
+		delta = pinPos.minus(p);
+		console.log(delta);
+		highlightPin(chosenPin);
+	};
+	drawBoard();
 }
 
 function handleMouseup(e){
-	chosenPin = null;
-	drawBoard();
 }
 
 /**
