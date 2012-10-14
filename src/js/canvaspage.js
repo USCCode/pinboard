@@ -1,4 +1,29 @@
 /**
+ * Vector/Point class. 
+ * @param x
+ * @param y
+ * @returns
+ */
+function Vector(x,y){
+	this.x = x;
+	this.y = y;
+};
+
+Vector.prototype.plus = function(o,y){
+	if (y) {
+		return new Vector(this.x + o, this.y + y);
+	};
+	return new Vector(this.x + o.x, this.y + o.y);
+};
+
+Vector.prototype.minus = function(o,y){
+	if (y) {
+		return new Vector(this.x - o, this.y - y);
+	};
+	return new Vector(this.x - o.x, this.y - o.y);
+};
+
+/**
  * The width and height that we will set all the images on the canvas.
  * TODO: We should store a width and height for each image on the server and use those.
  */
@@ -10,7 +35,7 @@ var imageHeight = 200;
  */
 var board = {};
 
-/***
+/**
  * Global vars that hold the canvas, 2D context, and the currently chosen pin.
  */
 var context;
@@ -20,7 +45,6 @@ var canvas;
  * user is currently moving.
  */
 var chosenPin = null;
-
 
 function scaleImage(w,h){
 	var nw,nh;
@@ -37,18 +61,20 @@ function scaleImage(w,h){
 
 /**
  * Update the pins by re-setting their location.
- * @param theBoard
  */
-function drawBoard(theBoard){
+function drawBoard(){
 	context.clearRect(0,0,canvas.width,canvas.height);
-	for (var i=0; i < theBoard.pins.length; i++){
-		var pin = theBoard.pins[i];
+	for (var i=0; i < board.pins.length; i++){
+		var pin = board.pins[i];
 		var w = pin.width ? pin.width : imageWidth;
 		var h = pin.height ? pin.height : imageHeight;
 		var d = scaleImage(w,h);
 		pin.width = d[0];
 		pin.height = d[1];
 		context.drawImage(pin.img,pin.x,pin.y,pin.width,pin.height);
+		if (i == chosenPin) {
+			highlightPin(i);
+		}
 	}
 }
 
@@ -70,7 +96,7 @@ function createImages(theBoard){
 		img.onload = function(){ 
 			if (++numImagesLoaded >= theBoard.pins.length){
 				console.log("Drawing...");
-				drawBoard(board)};
+				drawBoard()};
 		};
 		img.src = pin.imgUrl;
 		pin.img = img;
@@ -83,10 +109,7 @@ function createImages(theBoard){
  * @returns {x: xcor, y: ycor}
  */
 function getPosInCanvas(evt) {
-    return {
-      x: evt.offsetX,
-      y: evt.offsetY
-    };
+	return new Vector(evt.offsetX, evt.offsetY);
 }
 
 
@@ -110,27 +133,24 @@ function getBoard(){
 
 /**
  * Change the chosenPin's x,y in the model, then redraw the board.
- * @param chosenPin
- * @param x
- * @param y
+ * @param p point
  */
-function movePin(chosenPin,x,y){
-	board.pins[chosenPin].x = Math.floor(x);
-	board.pins[chosenPin].y = Math.floor(y);
+function movePin(chosenPin,p){
+	board.pins[chosenPin].x = Math.floor(p.x);
+	board.pins[chosenPin].y = Math.floor(p.y);
 	drawBoard(board);		
 }
 
 /**
- * Returns the pin index number of the pin that overlaps x,y (canvas coordinates)
+ * Returns the pin index number of the pin that overlaps p.x,p.y (canvas coordinates)
  * or null if none.
- * @param x
- * @param y
+ * @param p the point
  */
-function getChosenPin(x,y){
+function getChosenPin(p){
 	for (var i=0; i < board.pins.length; i++){
 		var thePin = board.pins[i];
-		if ( thePin.x < x && x < thePin.x + thePin.width &&
-				thePin.y < y && y < thePin.y + thePin.height){
+		if ( thePin.x < p.x && p.x < thePin.x + thePin.width &&
+				thePin.y < p.y && p.y < thePin.y + thePin.height){
 			return i;
 		} 
 	}
@@ -164,10 +184,10 @@ function sendToServer(){
  * Handler for when the mouse moves inside the canvas.
  * @param evt
  */
-function mouseMoveHandler(evt){
+function handleMousemove(e){
 	if (chosenPin == null) return;
-	var xy = getPosInCanvas(evt);	
-	movePin(chosenPin,xy.x,xy.y);
+	var p = getPosInCanvas(e);	
+	movePin(chosenPin,p.plus(delta));
 }
 
 /**
@@ -182,9 +202,35 @@ function mouseClickHandler(evt){
 	} else {
 		chosenPin = getChosenPin(xy.x, xy.y);
 		if (chosenPin != null){
-			movePin(chosenPin,xy.x,xy.y);
+//			movePin(chosenPin,xy.x,xy.y);
+			highlightPin(chosenPin);
 		}
 	};
+}
+
+function getPinPosition(n){
+	var thePin = board.pins[n];
+	return new Vector(thePin.x,thePin.y);
+}
+
+/** Vector with the difference between the mouse and the top-left
+ *  of the pin.
+ */
+var delta;
+
+function handleMousedown(e){
+	console.log('mousedown');
+	var p = getPosInCanvas(e);
+	chosenPin = getChosenPin(p);
+	var pinPos = getPinPosition(chosenPin);
+	delta = pinPos.minus(p);
+	console.log(delta);
+	highlightPin(chosenPin);
+}
+
+function handleMouseup(e){
+	chosenPin = null;
+	drawBoard();
 }
 
 /**
@@ -213,10 +259,14 @@ function highlightPin(p){
 
 $(document).ready(function(){
 	if (isEditor) {
-		$('#board').on('mousemove',mouseMoveHandler);
+		$('#board').on('mousemove', handleMousemove);
+		$('#board').on('mousedown', handleMousedown);
+		$('#board').on('mouseup', handleMouseup );
 		$('#board').on('click',mouseClickHandler);
 	};
 	canvas = document.getElementById('board');
 	context = canvas.getContext('2d');	
 	getBoard();
 });
+
+
