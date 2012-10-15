@@ -10,18 +10,25 @@ function Vector(x,y){
 };
 
 Vector.prototype.plus = function(o,y){
-	if (y) {
+	if (y != null) {
 		return new Vector(this.x + o, this.y + y);
 	};
 	return new Vector(this.x + o.x, this.y + o.y);
 };
 
 Vector.prototype.minus = function(o,y){
-	if (y) {
+	if (y != null) {
 		return new Vector(this.x - o, this.y - y);
 	};
 	return new Vector(this.x - o.x, this.y - o.y);
 };
+
+Vector.prototype.distance = function(o,y){
+	if (y != null) {
+		return Math.sqrt(Math.pow(this.x - o, 2) + Math.pow(this.y - y, 2));
+	};
+	return Math.sqrt(Math.pow(this.x - o.x, 2) + Math.pow(this.y - o.y, 2));
+}
 
 /**
  * The width and height that we will set all the images on the canvas.
@@ -60,6 +67,46 @@ function scaleImage(w,h){
 }
 
 /**
+ * Change the size and location of markedPin, given that
+ *  chosenMarker is now at newMarker, and all 4 markers are stored in markers,
+ * @param newMarker
+ */
+function resizePin(newMarker){
+	console.log('newMarker x=' + newMarker.x + ' y=' + newMarker.y);
+	var pin = board.pins[markedPin];
+
+	if (chosenMarker == null){
+		console.log('ERROR');
+		return;
+	}
+	var next = (chosenMarker + 1) % 4;
+	var previous = (chosenMarker == 0) ? 3 : (chosenMarker - 1);
+	var move = newMarker.minus(markers[chosenMarker]);
+
+	//Change this marker's position, and its two neighbors.
+	
+	markers[chosenMarker].x = newMarker.x;
+	markers[chosenMarker].y = newMarker.y;
+	if ((chosenMarker % 2) == 0){ //top-left or bottom-right
+		markers[next].y += move.y;
+		markers[previous].x += move.x;
+	} 
+	else { //top-right or bottom-left
+		markers[next].x += move.x;
+		markers[previous].y += move.y;
+	}
+	//Change the markedPin's attributes to match the new markers
+	pin.x = markers[0].x;
+	pin.y = markers[0].y;
+	pin.width = markers[1].x - markers[0].x;
+	pin.height = markers[3].y - markers[0].y;
+	
+	chosenPin = markedPin;
+	drawBoard();
+	chosenPin = null;
+}
+
+/**
  * Update the pins by re-setting their location.
  */
 function drawBoard(){
@@ -72,7 +119,7 @@ function drawBoard(){
 		pin.width = d[0];
 		pin.height = d[1];
 		context.drawImage(pin.img,pin.x,pin.y,pin.width,pin.height);
-		if (i == chosenPin) {
+		if (i == chosenPin){
 			highlightPin(i);
 		}
 	}
@@ -185,27 +232,16 @@ function sendToServer(){
  * @param evt
  */
 function handleMousemove(e){
-	if (chosenPin == null) return;
 	var p = getPosInCanvas(e);	
-	movePin(chosenPin,p.plus(delta));
-}
-
-/**
- * Handler for when the mouse is clicked on inside the canvas.
- * @param evt
- */
-function mouseClickHandler(evt){
-	var xy = getPosInCanvas(evt);
-	if (chosenPin!= null) {
-		sendToServer();
-		chosenPin = null;
-	} else {
-		chosenPin = getChosenPin(xy.x, xy.y);
-		if (chosenPin != null){
-//			movePin(chosenPin,xy.x,xy.y);
-			highlightPin(chosenPin);
-		}
-	};
+	if (chosenPin != null) {
+		movePin(chosenPin,p.plus(delta));
+		return;
+	}
+	if (chosenMarker != null){
+		console.log('resize image');
+//		resizePin(p.plus(delta));
+		resizePin(p);
+	}
 }
 
 function getPinPosition(n){
@@ -218,9 +254,21 @@ function getPinPosition(n){
  */
 var delta;
 
+/** Index of chosen marker in markers */
+var chosenMarker = null;
+
 function handleMousedown(e){
 	console.log('mousedown');
 	var p = getPosInCanvas(e);
+	for (var m in markers){
+		if (markers[m].distance(p) < markerRadius){
+			console.log("In marker ");
+			console.log(markers[m]);
+			chosenMarker = parseInt(m);
+			delta = markers[chosenMarker].minus(p);
+			return;
+		}
+	}
 	chosenPin = getChosenPin(p);
 	console.log('chosenPin=');
 	console.log(chosenPin);
@@ -229,24 +277,47 @@ function handleMousedown(e){
 		delta = pinPos.minus(p);
 		console.log(delta);
 		highlightPin(chosenPin);
-	};
+	}
+	else {
+		markers = null; //user clicks down on background, erase markers
+	}
 	drawBoard();
 }
 
 function handleMouseup(e){
+	console.log('mouseup');
+	console.log('chosenPin=');
+	console.log(chosenPin);
+	chosenPin = null;
+	chosenMarker = null;
+}
+
+
+var markerRadius = 10;
+
+/**
+ * Draw a circle at p
+ * @param p
+ */
+function drawMarker(p){
+	context.beginPath();
+	context.fillStyle = '#888888';
+	context.arc(p.x, p.y, markerRadius, 0, Math.PI * 2);
+	context.fill();
+}
+
+function drawMarkers(){
+	for (var m in markers){
+		drawMarker(markers[m]);
+	};
 }
 
 /**
- * Draw a circle at x,y
- * @param x
- * @param y
+ * An array containing the 4 circles center points (Vectors), when they are visible.
+ * Or null if not there.
  */
-function drawMarker(x,y){
-	context.beginPath();
-	context.fillStyle = '#888888';
-	context.arc(x, y, 10, 0, Math.PI * 2);
-	context.fill();
-}
+var markers = null;
+var markedPin = null;
 
 /**
  * Highlight pin p in canvas by drawing 4 circles on its corners.
@@ -254,18 +325,23 @@ function drawMarker(x,y){
  */
 function highlightPin(p){
 	var pin = board.pins[p];
-	drawMarker(pin.x,pin.y);
-	drawMarker(pin.x+pin.width,pin.y);
-	drawMarker(pin.x+pin.width,pin.y+pin.height);
-	drawMarker(pin.x,pin.y+pin.height);
+	markedPin = p;
+	if (markers == null){
+		markers = [new Vector(pin.x,pin.y), //clockwise order, from top-left.
+		           new Vector(pin.x+pin.width,pin.y),
+		           new Vector(pin.x+pin.width,pin.y+pin.height),
+		           new Vector(pin.x,pin.y+pin.height)];
+	}
+	drawMarkers();
 }
+
+
 
 $(document).ready(function(){
 	if (isEditor) {
 		$('#board').on('mousemove', handleMousemove);
 		$('#board').on('mousedown', handleMousedown);
 		$('#board').on('mouseup', handleMouseup );
-		$('#board').on('click',mouseClickHandler);
 	};
 	canvas = document.getElementById('board');
 	context = canvas.getContext('2d');	
