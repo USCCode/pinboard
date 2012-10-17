@@ -67,8 +67,10 @@ class Board(db.Model):
     owner = db.UserProperty(required=True)
     private = db.BooleanProperty(default=False)
     pins = db.ListProperty(db.Key,default=[]) #references to the pins in this pinboard, some might not exist anymore
-    pinsx = db.ListProperty(int)
+    pinsx = db.ListProperty(int) #The pins x and y location on the canvas board.
     pinsy = db.ListProperty(int)
+    pinsWidth = db.ListProperty(int) #The pins width and height on the canvas board, in pixels.
+    pinsHeight = db.ListProperty(int)
     
     def id(self):
         return self.key().id()
@@ -81,7 +83,9 @@ class Board(db.Model):
             pin.boards.append(self.key())
             self.pinsx.append(0)
             self.pinsy.append(0)
-    
+            self.pinsWidth.append(pin.width)
+            self.pinsHeight.append(pin.height)
+            
     def deletePin(self,pin):
         """Deletes pin from this board's pins,and this board from pin's boards list."""
         if (pin.key() in self.pins):
@@ -90,6 +94,8 @@ class Board(db.Model):
             pin.boards.remove(self.key())
             del self.pinsx[self.idx]
             del self.pinsy[self.idx]
+            del self.pinsWidth[self.idx]
+            del self.pinsHeight[self.idx]
             
     def remove(self):
         """Deletes this board, and removes it from all the pins that have it."""
@@ -99,12 +105,14 @@ class Board(db.Model):
             thepin.put()
         self.delete()
         
-    def updatePin(self,pin,x,y):
+    def updatePin(self,pin,x,y,w,h):
         """Updates the x,y coordinates of pin"""
         try:
             i = self.pins.index(pin.key())
             self.pinsx[i] = int(x)
             self.pinsy[i] = int(y)
+            self.pinsWidth[i] = int(w)
+            self.pinsHeight[i] = int(h)
             return True            
         except ValueError:
             return False
@@ -140,10 +148,12 @@ class Board(db.Model):
         logging.error(self.pinsx)            
         logging.error(self.pinsy)
         newPins = []            
-        for (pin,x,y) in zip(thePins,self.pinsx,self.pinsy):
+        for (pin,x,y,w,h) in zip(thePins,self.pinsx,self.pinsy,self.pinsWidth, self.pinsHeight):
             jpin = pin.getDict()
             jpin['x'] = x
             jpin['y'] = y
+            jpin['width'] = w #override the ones set up 3 lines above. 
+            jpin['height'] = h 
             newPins.append(jpin)
         b['pins'] = newPins
         return b
@@ -373,7 +383,9 @@ class BoardHandler(MyHandler):
                     if thePin != None and thePin.owner == self.user and (thePin.key() in theBoard.pins):
                         x = self.request.get('x')
                         y = self.request.get('y')
-                        theBoard.updatePin(thePin,x,y)
+                        w = self.request.get('w')
+                        h = self.request.get('h')
+                        theBoard.updatePin(thePin,x,y,w,h)
                 theBoard.title = title
                 theBoard.private = private
                 theBoard.put()

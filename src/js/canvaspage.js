@@ -89,11 +89,7 @@ function resizePin(newMarker){
 	pin.width = Math.abs(markers[1].x - markers[0].x);
 	pin.height = Math.abs(markers[3].y - markers[0].y);
 	
-	console.log('width=' + pin.width);
-	console.log('height=' + pin.height);
-	console.log('width=' + board.pins[markedPin].width);
-	console.log('height=' + board.pins[markedPin].height);
-	
+	//Redraw the board, including the markers aroud this markedPin
 	chosenPin = markedPin;
 	drawBoard();
 	chosenPin = null;
@@ -202,13 +198,16 @@ function getChosenPin(p){
  * TODO: handle error.
  */
 function sendToServer(){
+	var p = board.pins[chosenPin];
 	$.ajax('/board/' + board.boardid, {
 		type: "POST",
 		data: {
 			title: board.title,
-			editPin: board.pins[chosenPin].pinid,
-			x: board.pins[chosenPin].x,
-			y: board.pins[chosenPin].y,
+			editPin: p.pinid,
+			x: p.x,
+			y: p.y,
+			w: p.width,
+			h: p.height,
 			private: board.private },
 		success: function(data){
 			console.log('updated server');
@@ -280,6 +279,16 @@ function handleMouseup(e){
 	console.log('mouseup');
 	console.log('chosenPin=');
 	console.log(chosenPin);
+	if (chosenPin == null){
+		if (markedPin != null) {
+			chosenPin = markedPin;
+			sendToServer();
+			chosenPin = null;
+		};
+	}
+	else {
+		sendToServer();
+	}
 	chosenPin = null;
 	chosenMarker = null;
 }
