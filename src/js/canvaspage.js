@@ -53,19 +53,6 @@ var canvas;
  */
 var chosenPin = null;
 
-function scaleImage(w,h){
-	var nw,nh;
-	if (Math.max(w,h) == w) {
-		nw = imageWidth;
-		nh = Math.floor((nw * h) / w);
-	}
-	else {
-		nh = imageHeight;
-		nw = Math.floor((nh * w) / h);		
-	}
-	return [nw,nh];
-}
-
 /**
  * Change the size and location of markedPin, given that
  *  chosenMarker is now at newMarker, and all 4 markers are stored in markers,
@@ -95,11 +82,17 @@ function resizePin(newMarker){
 		markers[next].x += move.x;
 		markers[previous].y += move.y;
 	}
+
 	//Change the markedPin's attributes to match the new markers
-	pin.x = markers[0].x;
-	pin.y = markers[0].y;
-	pin.width = markers[1].x - markers[0].x;
-	pin.height = markers[3].y - markers[0].y;
+	pin.x = Math.min(markers[0].x, markers[1].x);
+	pin.y = Math.min(markers[0].y, markers[3].y);
+	pin.width = Math.abs(markers[1].x - markers[0].x);
+	pin.height = Math.abs(markers[3].y - markers[0].y);
+	
+	console.log('width=' + pin.width);
+	console.log('height=' + pin.height);
+	console.log('width=' + board.pins[markedPin].width);
+	console.log('height=' + board.pins[markedPin].height);
 	
 	chosenPin = markedPin;
 	drawBoard();
@@ -115,9 +108,6 @@ function drawBoard(){
 		var pin = board.pins[i];
 		var w = pin.width ? pin.width : imageWidth;
 		var h = pin.height ? pin.height : imageHeight;
-		var d = scaleImage(w,h);
-		pin.width = d[0];
-		pin.height = d[1];
 		context.drawImage(pin.img,pin.x,pin.y,pin.width,pin.height);
 		if (i == chosenPin){
 			highlightPin(i);
@@ -185,7 +175,9 @@ function getBoard(){
 function movePin(chosenPin,p){
 	board.pins[chosenPin].x = Math.floor(p.x);
 	board.pins[chosenPin].y = Math.floor(p.y);
-	drawBoard(board);		
+	drawBoard();
+	markers=null;
+	highlightPin(chosenPin);
 }
 
 /**
