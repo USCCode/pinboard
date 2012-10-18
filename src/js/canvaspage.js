@@ -28,11 +28,10 @@ Vector.prototype.distance = function(o,y){
 		return Math.sqrt(Math.pow(this.x - o, 2) + Math.pow(this.y - y, 2));
 	};
 	return Math.sqrt(Math.pow(this.x - o.x, 2) + Math.pow(this.y - o.y, 2));
-}
+};
 
 /**
  * The width and height that we will set all the images on the canvas.
- * TODO: We should store a width and height for each image on the server and use those.
  */
 var imageWidth = 200;
 var imageHeight = 200;
@@ -53,13 +52,40 @@ var canvas;
  */
 var chosenPin = null;
 
+/** Vector with the difference between the mouse and the top-left of the pin, or the center
+ *    of the marker.
+ */
+var delta;
+
+/** Index of chosen marker in markers. The chosenMarker is the one the user just did a mousedown on and
+ *   is moving around. */
+var chosenMarker = null;
+
+/**
+ * An array containing the 4 circles center points (Vectors), when they are visible.
+ * Or null if not there.
+ */
+var markers = null;
+
+/**
+ * The index of the pin that has markers around it.
+ */
+var markedPin = null;
+
+
+/**
+ * The radius of the markers (the circles around the image, used for re-sizing it).
+ */
+var markerRadius = 10;
+
+
+
 /**
  * Change the size and location of markedPin, given that
  *  chosenMarker is now at newMarker, and all 4 markers are stored in markers,
  * @param newMarker
  */
 function resizePin(newMarker){
-	console.log('newMarker x=' + newMarker.x + ' y=' + newMarker.y);
 	var pin = board.pins[markedPin];
 
 	if (chosenMarker == null){
@@ -102,8 +128,6 @@ function drawBoard(){
 	context.clearRect(0,0,canvas.width,canvas.height);
 	for (var i=0; i < board.pins.length; i++){
 		var pin = board.pins[i];
-		var w = pin.width ? pin.width : imageWidth;
-		var h = pin.height ? pin.height : imageHeight;
 		context.drawImage(pin.img,pin.x,pin.y,pin.width,pin.height);
 		if (i == chosenPin){
 			highlightPin(i);
@@ -128,8 +152,8 @@ function createImages(theBoard){
 		var img = new Image(); 
 		img.onload = function(){ 
 			if (++numImagesLoaded >= theBoard.pins.length){
-				console.log("Drawing...");
-				drawBoard()};
+				drawBoard();
+			};
 		};
 		img.src = pin.imgUrl;
 		pin.img = img;
@@ -165,7 +189,7 @@ function getBoard(){
 }
 
 /**
- * Change the chosenPin's x,y in the model, then redraw the board.
+ * Change the chosenPin's x,y in the model, then redraw the board and the pin's markers.
  * @param p point
  */
 function movePin(chosenPin,p){
@@ -195,10 +219,11 @@ function getChosenPin(p){
 /**
  * Send the current board to the server in an 'editPin' action, with value of chosenPin.
  * Thus, only the chosenPin's x,y are updated.
+ * @param pin the index of the pin to send
  * TODO: handle error.
  */
-function sendToServer(){
-	var p = board.pins[chosenPin];
+function sendToServer(pin){
+	var p = board.pins[pin];
 	$.ajax('/board/' + board.boardid, {
 		type: "POST",
 		data: {
@@ -229,8 +254,6 @@ function handleMousemove(e){
 		return;
 	}
 	if (chosenMarker != null){
-		console.log('resize image');
-//		resizePin(p.plus(delta));
 		resizePin(p);
 	}
 }
@@ -240,61 +263,52 @@ function getPinPosition(n){
 	return new Vector(thePin.x,thePin.y);
 }
 
-/** Vector with the difference between the mouse and the top-left
- *  of the pin.
+
+/**
+ * On mouse down we either start resizing or moving.
+ * @param e
  */
-var delta;
-
-/** Index of chosen marker in markers */
-var chosenMarker = null;
-
 function handleMousedown(e){
-	console.log('mousedown');
 	var p = getPosInCanvas(e);
+	//First, check to see if click was inside a marker
 	for (var m in markers){
-		if (markers[m].distance(p) < markerRadius){
-			console.log("In marker ");
-			console.log(markers[m]);
+		if (markers[m].distance(p) < markerRadius){ //it was so remember the marker, and its delta.
 			chosenMarker = parseInt(m);
 			delta = markers[chosenMarker].minus(p);
+			e.stopPropagation();
 			return;
 		}
 	}
+	//Check to see if click is inside a pin
 	chosenPin = getChosenPin(p);
-	console.log('chosenPin=');
-	console.log(chosenPin);
-	if (chosenPin != null) {
+	if (chosenPin != null) { //click was inside a pin
 		var pinPos = getPinPosition(chosenPin);
 		delta = pinPos.minus(p);
-		console.log(delta);
+		markers = null;
 		highlightPin(chosenPin);
 	}
 	else {
 		markers = null; //user clicks down on background, erase markers
 	}
 	drawBoard();
+	e.stopPropagation();
 }
 
+/**
+ * When the mouse goes up we send data about the pin back to the server.
+ * @param e
+ */
 function handleMouseup(e){
-	console.log('mouseup');
-	console.log('chosenPin=');
-	console.log(chosenPin);
-	if (chosenPin == null){
-		if (markedPin != null) {
-			chosenPin = markedPin;
-			sendToServer();
-			chosenPin = null;
-		};
+	if (chosenPin != null) { //If a pin was chosen, send its values to the server.
+		sendToServer(chosenPin);
+		chosenPin = null;
+	} 
+	else if (markedPin != null){ //If a pin was marked, send its value to the server, and unchoose its marker. 
+		sendToServer(markedPin);
+		chosenMarker = null;
 	}
-	else {
-		sendToServer();
-	}
-	chosenPin = null;
-	chosenMarker = null;
+	e.stopPropagation();
 }
-
-
-var markerRadius = 10;
 
 /**
  * Draw a circle at p
@@ -314,13 +328,6 @@ function drawMarkers(){
 }
 
 /**
- * An array containing the 4 circles center points (Vectors), when they are visible.
- * Or null if not there.
- */
-var markers = null;
-var markedPin = null;
-
-/**
  * Highlight pin p in canvas by drawing 4 circles on its corners.
  * @param p the # of the pin
  */
@@ -336,13 +343,19 @@ function highlightPin(p){
 	drawMarkers();
 }
 
-
+function clearAll(){
+	markers=null;
+	markedPin=null;
+	chosenPin=null;
+	drawBoard();
+}
 
 $(document).ready(function(){
 	if (isEditor) {
 		$('#board').on('mousemove', handleMousemove);
 		$('#board').on('mousedown', handleMousedown);
 		$('#board').on('mouseup', handleMouseup );
+		$('body').on('mousedown', clearAll);
 	};
 	canvas = document.getElementById('board');
 	context = canvas.getContext('2d');	
